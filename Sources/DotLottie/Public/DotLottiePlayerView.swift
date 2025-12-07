@@ -630,6 +630,11 @@ open class DotLottiePlayerView: PlatformView {
     
     // MARK: - State Machine Support
     
+    /// Checks if animation supports state machine
+    public func isStateMachine() -> Bool {
+        manifest()?.stateMachines?.isEmpty == false
+    }
+    
     /// Loads a state machine by ID
     @discardableResult
     public func stateMachineLoad(id: String) -> Bool {
@@ -646,6 +651,14 @@ open class DotLottiePlayerView: PlatformView {
     @discardableResult
     public func stateMachineStart() -> Bool {
         dotLottieAnimation?.stateMachineStart() ?? false
+    }
+
+    /// Loads and starts the given state machine from the manifest.
+    /// This stops any running state machine before starting the requested one.
+    @discardableResult
+    public func startStateMachine(id: String, openUrlPolicy: OpenUrlPolicy = OpenUrlPolicy(requireUserInteraction: true, whitelist: [])) -> Bool {
+        guard let dotLottieAnimation else { return false }
+        return dotLottieAnimation.stateMachineStart(id: id, openUrlPolicy: openUrlPolicy)
     }
     
     /// Stops the state machine
