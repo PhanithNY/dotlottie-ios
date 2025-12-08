@@ -175,6 +175,8 @@ open class DotLottiePlayerView: PlatformView {
     private var loadingAttempts = 0
     #if canImport(UIKit)
     private var gestureManager: GestureManager?
+    #elseif canImport(AppKit)
+    private var gestureManager: GestureManager?
     #endif
     
     // MARK: - Initialization
@@ -317,14 +319,13 @@ open class DotLottiePlayerView: PlatformView {
         
         // Create new animation view
         let view = DotLottieAnimationView(dotLottieViewModel: dotLottie)
-        view.isUserInteractionEnabled = true
-        animationView = view
-        addSubview(view)
-        
         #if canImport(UIKit)
+        view.isUserInteractionEnabled = true
         // Keep the view interactive
         bringSubviewToFront(view)
         #endif
+        animationView = view
+        addSubview(view)
         
         // Set up frame and ensure it fits properly
         view.frame = bounds
@@ -338,10 +339,14 @@ open class DotLottiePlayerView: PlatformView {
         
         // Update config
         updateConfig()
-        setupInteractionRecognizers()
         
         // Set up loading observer
         setupLoadingObserver(for: dotLottie)
+        
+        // Set up interaction recognizers
+        #if canImport(UIKit) || canImport(AppKit)
+        setupInteractionRecognizers()
+        #endif
         
         // Call animation loaded callback if animation is already loaded
         if dotLottie.isLoaded() {
@@ -437,41 +442,117 @@ open class DotLottiePlayerView: PlatformView {
         
         // Always match the parent bounds
         animationView.frame = bounds
+        #if canImport(UIKit)
         animationView.setNeedsLayout()
         animationView.layoutIfNeeded()
-        // Don't resize animation - let it use its natural size like the legacy implementation
-        // resizeAnimationIfNeeded()
-        
-        #if canImport(UIKit)
         // Ensure content mode is synchronized
         if animationView.contentMode != contentMode {
             animationView.contentMode = contentMode
         }
+        #elseif canImport(AppKit)
+        animationView.needsLayout = true
+        animationView.layoutSubtreeIfNeeded()
+        // Update tracking areas when view is resized
+        setupTrackingAreas()
         #endif
+        // Don't resize animation - let it use its natural size like the legacy implementation
+        // resizeAnimationIfNeeded()
     }
 
     #if canImport(UIKit)
     private func setupInteractionRecognizers() {
-        #if canImport(UIKit)
         guard gestureManager == nil else {
-            print("DotLottiePlayerView: GestureManager already set up")
             return
         }
         
-        print("DotLottiePlayerView: Setting up GestureManager")
         isUserInteractionEnabled = true
+        
+        guard let animationView = animationView else {
+            return
+        }
+        
+        animationView.isUserInteractionEnabled = true
         
         let gm = GestureManager()
         gm.cancelsTouchesInView = false
         gm.delegate = self
         gm.gestureManagerDelegate = self
         addGestureRecognizer(gm)
-        animationView?.addGestureRecognizer(gm)
+        animationView.addGestureRecognizer(gm)
         gestureManager = gm
-        print("DotLottiePlayerView: GestureManager set up, added to player and animationView")
-        #endif
+    }
+    #elseif canImport(AppKit)
+    private func setupInteractionRecognizers() {
+        guard gestureManager == nil else { return }
+        
+        let gm = GestureManager()
+        gm.gestureManagerDelegate = self
+        gestureManager = gm
+        
+        // Set up tracking areas for mouse events
+        setupTrackingAreas()
     }
     
+    private func setupTrackingAreas() {
+        // Remove existing tracking areas
+        for trackingArea in trackingAreas {
+            removeTrackingArea(trackingArea)
+        }
+        
+        // Add new tracking area for hover detection
+        let trackingArea = NSTrackingArea(
+            rect: bounds,
+            options: [.activeAlways, .inVisibleRect, .mouseMoved, .mouseEnteredAndExited],
+            owner: self,
+            userInfo: nil
+        )
+        addTrackingArea(trackingArea)
+    }
+    
+    public override var acceptsFirstResponder: Bool {
+        return true
+    }
+    
+    public override func mouseDown(with event: NSEvent) {
+        super.mouseDown(with: event)
+        let location = convert(event.locationInWindow, from: nil)
+        gestureManager?.handleMouseDown(at: location)
+    }
+    
+    public override func mouseDragged(with event: NSEvent) {
+        super.mouseDragged(with: event)
+        let location = convert(event.locationInWindow, from: nil)
+        gestureManager?.handleMouseDragged(at: location)
+    }
+    
+    public override func mouseUp(with event: NSEvent) {
+        super.mouseUp(with: event)
+        let location = convert(event.locationInWindow, from: nil)
+        gestureManager?.handleMouseUp(at: location)
+    }
+    
+    public override func mouseMoved(with event: NSEvent) {
+        super.mouseMoved(with: event)
+        let location = convert(event.locationInWindow, from: nil)
+        gestureManager?.handleMouseMoved(at: location)
+    }
+    
+    public override func mouseEntered(with event: NSEvent) {
+        super.mouseEntered(with: event)
+        let location = convert(event.locationInWindow, from: nil)
+        gestureManager?.handleMouseEntered(at: location)
+    }
+    
+    public override func mouseExited(with event: NSEvent) {
+        super.mouseExited(with: event)
+        let location = convert(event.locationInWindow, from: nil)
+        gestureManager?.handleMouseExited(at: location)
+    }
+    
+    public override func updateTrackingAreas() {
+        super.updateTrackingAreas()
+        setupTrackingAreas()
+    }
     #endif
     
     // MARK: - Playback Control
@@ -723,7 +804,6 @@ open class DotLottiePlayerView: PlatformView {
     
     /// Posts an event to the state machine
     public func stateMachinePostEvent(_ event: Event, force: Bool = false) {
-        print("DotLottiePlayerView posting event: \(event)")
         dotLottieAnimation?.stateMachinePostEvent(event, force: force)
     }
     
@@ -772,34 +852,56 @@ open class DotLottiePlayerView: PlatformView {
         let animationWidth = CGFloat(animation.animationModel.width)
         let animationHeight = CGFloat(animation.animationModel.height)
         
-        // Calculate drawable size equivalent (view bounds in pixels)
-        // This matches Coordinator's viewSize which is set from drawableSize
         #if canImport(UIKit)
+        // For iOS, Coordinator uses drawableSize (in pixels) which equals bounds.size * screenScale
+        // This is what viewSize represents in Coordinator's calculateCoordinates for iOS
         let screenScale = UIScreen.main.scale
-        let drawableSize = CGSize(width: bounds.width * screenScale, height: bounds.height * screenScale)
-        #else
-        let screenScale = window?.backingScaleFactor ?? 1.0
-        let drawableSize = CGSize(width: bounds.width * screenScale, height: bounds.height * screenScale)
-        #endif
+        let viewSize = CGSize(width: bounds.size.width * screenScale, height: bounds.size.height * screenScale)
         
-        guard drawableSize.width > 0, drawableSize.height > 0 else { return point }
+        guard viewSize.width > 0, viewSize.height > 0 else { return point }
         
-        // Calculate scale ratio: animation pixels / drawable pixels
+        // Calculate scale ratio: animation pixels / view pixels (drawableSize)
         // This matches the legacy Coordinator's approach exactly
         let scaleRatio = CGPoint(
-            x: animationWidth / drawableSize.width,
-            y: animationHeight / drawableSize.height
+            x: animationWidth / viewSize.width,
+            y: animationHeight / viewSize.height
         )
         
-        #if canImport(UIKit)
         // Convert from view coordinates (points) to animation coordinates (pixels)
-        // point is in points, drawableSize is in pixels, so multiply by screenScale first
-        let mappedX = point.x * screenScale * scaleRatio.x
-        let mappedY = point.y * screenScale * scaleRatio.y
+        // Multiply by scale ratio and screen scale to get pixel coordinates
+        let mappedX = point.x * scaleRatio.x * screenScale
+        let mappedY = point.y * scaleRatio.y * screenScale
+        #elseif canImport(AppKit)
+        // For macOS, Coordinator uses bounds.size (in points) for viewSize
+        let viewSize = bounds.size
+        
+        guard viewSize.width > 0, viewSize.height > 0 else { return point }
+        
+        // Calculate scale ratio: animation pixels / view points
+        let scaleRatio = CGPoint(
+            x: animationWidth / viewSize.width,
+            y: animationHeight / viewSize.height
+        )
+        
+        // macOS - Flip Y coordinate (origin is bottom-left on macOS, top-left in animation space)
+        let flippedY = viewSize.height - point.y
+        
+        // Convert from view coordinates (points) to animation coordinates (pixels)
+        // scaleRatio already accounts for pixel density since animation is in pixels
+        let mappedX = point.x * scaleRatio.x
+        let mappedY = flippedY * scaleRatio.y
         #else
-        // macOS
-        let mappedX = point.x * screenScale * scaleRatio.x
-        let mappedY = point.y * screenScale * scaleRatio.y
+        let viewSize = bounds.size
+        
+        guard viewSize.width > 0, viewSize.height > 0 else { return point }
+        
+        let scaleRatio = CGPoint(
+            x: animationWidth / viewSize.width,
+            y: animationHeight / viewSize.height
+        )
+        
+        let mappedX = point.x * scaleRatio.x
+        let mappedY = point.y * scaleRatio.y
         #endif
         
         return CGPoint(x: mappedX, y: mappedY)
@@ -879,27 +981,85 @@ extension DotLottiePlayerView: UIGestureRecognizerDelegate, GestureManagerDelega
     }
     
     func gestureManagerDidRecognizeTap(_ gestureManager: GestureManager, at location: CGPoint) {
+        // Convert location from gesture recognizer's view coordinate space to self's coordinate space
+        let locationInSelf: CGPoint
+        if let gestureView = gestureManager.view {
+            locationInSelf = convert(location, from: gestureView)
+        } else {
+            locationInSelf = location
+        }
+        let mapped = mapCoordinatesToAnimation(locationInSelf)
+        stateMachinePostEvent(.click(x: Float(mapped.x), y: Float(mapped.y)))
+    }
+    
+    func gestureManagerDidRecognizeMove(_ gestureManager: GestureManager, at location: CGPoint) {
+        // Convert location from gesture recognizer's view coordinate space to self's coordinate space
+        let locationInSelf: CGPoint
+        if let gestureView = gestureManager.view {
+            locationInSelf = convert(location, from: gestureView)
+        } else {
+            locationInSelf = location
+        }
+        let mapped = mapCoordinatesToAnimation(locationInSelf)
+        stateMachinePostEvent(.pointerMove(x: Float(mapped.x), y: Float(mapped.y)))
+    }
+    
+    func gestureManagerDidRecognizeDown(_ gestureManager: GestureManager, at location: CGPoint) {
+        // Convert location from gesture recognizer's view coordinate space to self's coordinate space
+        let locationInSelf: CGPoint
+        if let gestureView = gestureManager.view {
+            locationInSelf = convert(location, from: gestureView)
+        } else {
+            locationInSelf = location
+        }
+        let mapped = mapCoordinatesToAnimation(locationInSelf)
+        stateMachinePostEvent(.pointerDown(x: Float(mapped.x), y: Float(mapped.y)))
+    }
+    
+    func gestureManagerDidRecognizeUp(_ gestureManager: GestureManager, at location: CGPoint) {
+        // Convert location from gesture recognizer's view coordinate space to self's coordinate space
+        let locationInSelf: CGPoint
+        if let gestureView = gestureManager.view {
+            locationInSelf = convert(location, from: gestureView)
+        } else {
+            locationInSelf = location
+        }
+        let mapped = mapCoordinatesToAnimation(locationInSelf)
+        stateMachinePostEvent(.pointerUp(x: Float(mapped.x), y: Float(mapped.y)))
+    }
+}
+#endif
+
+#if canImport(AppKit)
+extension DotLottiePlayerView: GestureManagerDelegate {
+    func gestureManagerDidRecognizeTap(_ gestureManager: GestureManager, at location: CGPoint) {
         let mapped = mapCoordinatesToAnimation(location)
-        print("GestureManager tap at \(location) mapped \(mapped)")
         stateMachinePostEvent(.click(x: Float(mapped.x), y: Float(mapped.y)))
     }
     
     func gestureManagerDidRecognizeMove(_ gestureManager: GestureManager, at location: CGPoint) {
         let mapped = mapCoordinatesToAnimation(location)
-        // Optional verbose logging could be gated if too chatty
         stateMachinePostEvent(.pointerMove(x: Float(mapped.x), y: Float(mapped.y)))
     }
     
     func gestureManagerDidRecognizeDown(_ gestureManager: GestureManager, at location: CGPoint) {
         let mapped = mapCoordinatesToAnimation(location)
-        print("GestureManager down at \(location) mapped \(mapped)")
         stateMachinePostEvent(.pointerDown(x: Float(mapped.x), y: Float(mapped.y)))
     }
     
     func gestureManagerDidRecognizeUp(_ gestureManager: GestureManager, at location: CGPoint) {
         let mapped = mapCoordinatesToAnimation(location)
-        print("GestureManager up at \(location) mapped \(mapped)")
         stateMachinePostEvent(.pointerUp(x: Float(mapped.x), y: Float(mapped.y)))
+    }
+    
+    func gestureManagerDidRecognizeHover(_ gestureManager: GestureManager, at location: CGPoint) {
+        let mapped = mapCoordinatesToAnimation(location)
+        stateMachinePostEvent(.pointerEnter(x: Float(mapped.x), y: Float(mapped.y)))
+    }
+    
+    func gestureManagerDidRecognizeExitHover(_ gestureManager: GestureManager, at location: CGPoint) {
+        let mapped = mapCoordinatesToAnimation(location)
+        stateMachinePostEvent(.pointerExit(x: Float(mapped.x), y: Float(mapped.y)))
     }
 }
 #endif
