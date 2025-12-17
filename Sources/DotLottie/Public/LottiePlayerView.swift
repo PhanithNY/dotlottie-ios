@@ -1,33 +1,33 @@
 //
 //  DotLottiePlayerSwiftUIView.swift
 //
-//  A SwiftUI wrapper for DotLottiePlayerView, similar to LottieView
+//  A SwiftUI wrapper for LottiePlayer, similar to LottieView
 //
 
 #if canImport(SwiftUI)
 import SwiftUI
 
-// MARK: - DotLottiePlayerSwiftUIView
+// MARK: - LottiePlayerView
 
-/// A SwiftUI wrapper for `DotLottiePlayerView` that provides a LottieView-like API for dotlottie animations
+/// A SwiftUI wrapper for `LottiePlayer` that provides a LottieView-like API for dotlottie animations
 @available(iOS 14.0, macOS 11.0, *)
-public struct DotLottiePlayerSwiftUIView<Placeholder: View>: View {
+public struct LottiePlayerView<Placeholder: View>: View {
     
     // MARK: - Lifecycle
     
-    /// Creates a `DotLottiePlayerSwiftUIView` with a dotlottie animation
+    /// Creates a `LottiePlayerView` with a dotlottie animation
     public init(animation: DotLottieAnimation?) where Placeholder == EmptyView {
         localAnimation = animation
         placeholder = nil
     }
     
-    /// Creates a `DotLottiePlayerSwiftUIView` that asynchronously loads an animation
+    /// Creates a `LottiePlayerView` that asynchronously loads an animation
     /// The `loadAnimation` closure is called exactly once in `onAppear`.
     public init(_ loadAnimation: @escaping () async throws -> DotLottieAnimation?) where Placeholder == EmptyView {
         self.init(loadAnimation, placeholder: EmptyView.init)
     }
     
-    /// Creates a `DotLottiePlayerSwiftUIView` that asynchronously loads an animation
+    /// Creates a `LottiePlayerView` that asynchronously loads an animation
     /// While loading, the `placeholder` view is shown
     public init(
         _ loadAnimation: @escaping () async throws -> DotLottieAnimation?,
@@ -43,7 +43,7 @@ public struct DotLottiePlayerSwiftUIView<Placeholder: View>: View {
     public var body: some View {
         ZStack {
             if let displayAnimation = displayAnimation {
-                DotLottiePlayerViewRepresentable(
+                LottiePlayerViewRepresentable(
                     animation: displayAnimation,
                     config: config,
                     loopMode: loopMode,
@@ -66,7 +66,7 @@ public struct DotLottiePlayerSwiftUIView<Placeholder: View>: View {
     }
     
     /// Returns a copy of this view with the given configuration
-    public func configure(_ configure: @escaping (DotLottiePlayerView) -> Void) -> Self {
+    public func configure(_ configure: @escaping (LottiePlayer) -> Void) -> Self {
         var copy = self
         copy.configurations.append(configure)
         return copy
@@ -192,7 +192,7 @@ public struct DotLottiePlayerSwiftUIView<Placeholder: View>: View {
     private var playbackMode: DotLottiePlaybackMode = .paused
     private var reloadAnimationTrigger: AnyHashable?
     private var showPlaceholderWhileReloading = false
-    private var configurations: [(DotLottiePlayerView) -> Void] = []
+    private var configurations: [(LottiePlayer) -> Void] = []
     private let placeholder: (() -> Placeholder)?
     
     private var displayAnimation: DotLottieAnimation? {
@@ -228,16 +228,16 @@ public struct DotLottiePlayerSwiftUIView<Placeholder: View>: View {
 
 // MARK: - DotLottiePlaybackMode
 
-/// Playback mode for DotLottiePlayerSwiftUIView
+/// Playback mode for LottiePlayerView
 public enum DotLottiePlaybackMode {
     case playing
     case paused
 }
 
-// MARK: - DotLottiePlayerViewRepresentable
+// MARK: - LottiePlayerViewRepresentable
 
 @available(iOS 14.0, macOS 11.0, *)
-private struct DotLottiePlayerViewRepresentable: PlatformViewRepresentable {
+private struct LottiePlayerViewRepresentable: PlatformViewRepresentable {
     
     #if canImport(UIKit)
     typealias PlatformViewType = UIView
@@ -251,7 +251,7 @@ private struct DotLottiePlayerViewRepresentable: PlatformViewRepresentable {
     let currentProgress: Double?
     let currentFrame: Double?
     let playbackMode: DotLottiePlaybackMode
-    let configurations: [(DotLottiePlayerView) -> Void]
+    let configurations: [(LottiePlayer) -> Void]
     
     #if canImport(UIKit)
     func makeUIView(context: Context) -> PlatformViewType {
@@ -279,7 +279,7 @@ private struct DotLottiePlayerViewRepresentable: PlatformViewRepresentable {
         let container = NSView()
         #endif
         
-        let view = DotLottiePlayerView(dotLottieAnimation: animation, config: config)
+        let view = LottiePlayer(dotLottieAnimation: animation, config: config)
         view.loopMode = loopMode
         view.animationSpeed = CGFloat(animationSpeed)
         
@@ -312,12 +312,12 @@ private struct DotLottiePlayerViewRepresentable: PlatformViewRepresentable {
     }
     
     private func updatePlatformView(_ platformView: PlatformViewType, context: Context) {
-        // Find the DotLottiePlayerView inside the container
+        // Find the LottiePlayer inside the container
         #if canImport(UIKit)
-        guard let view = platformView.viewWithTag(12345) as? DotLottiePlayerView else { return }
+        guard let view = platformView.viewWithTag(12345) as? LottiePlayer else { return }
         #else
-        // On macOS, get the first subview (which is our DotLottiePlayerView)
-        guard let view = platformView.subviews.first as? DotLottiePlayerView else { return }
+        // On macOS, get the first subview (which is our LottiePlayer)
+        guard let view = platformView.subviews.first as? LottiePlayer else { return }
         #endif
         // Prevent layout loops by checking if values actually changed
         

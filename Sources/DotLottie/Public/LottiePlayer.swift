@@ -30,7 +30,7 @@ public typealias PlatformColor = NSColor
 /// This provides an alternative way to use dotlottie that follows the same patterns as LottieAnimationView.
 /// Available on iOS and macOS.
 @IBDesignable
-open class DotLottiePlayerView: PlatformView {
+open class LottiePlayer: PlatformView {
     
     // MARK: - Public Properties
     
@@ -118,7 +118,7 @@ open class DotLottiePlayerView: PlatformView {
     }
     
     /// A closure that is called when the animation is loaded
-    public var animationLoaded: ((_ playerView: DotLottiePlayerView, _ animation: DotLottieAnimation?) -> Void)?
+    public var animationLoaded: ((_ playerView: LottiePlayer, _ animation: DotLottieAnimation?) -> Void)?
     
     /// Animation playback mode
     public var mode: Mode {
@@ -198,7 +198,7 @@ open class DotLottiePlayerView: PlatformView {
         name: String,
         bundle: Bundle = .main,
         config: AnimationConfig = AnimationConfig(),
-        completion: ((DotLottiePlayerView, Error?) -> Void)? = nil
+        completion: ((LottiePlayer, Error?) -> Void)? = nil
     ) {
         let animation = DotLottieAnimation(fileName: name, bundle: bundle, config: config)
         self.init(dotLottieAnimation: animation, config: config)
@@ -219,7 +219,7 @@ open class DotLottiePlayerView: PlatformView {
     public convenience init(
         filePath: String,
         config: AnimationConfig = AnimationConfig(),
-        completion: ((DotLottiePlayerView, Error?) -> Void)? = nil
+        completion: ((LottiePlayer, Error?) -> Void)? = nil
     ) {
         // For file path, we need to load the data first
         guard let data = try? Data(contentsOf: URL(fileURLWithPath: filePath)) else {
@@ -247,7 +247,7 @@ open class DotLottiePlayerView: PlatformView {
         url: URL,
         config: AnimationConfig = AnimationConfig(),
         session: URLSession = .shared,
-        completion: ((DotLottiePlayerView, Error?) -> Void)? = nil
+        completion: ((LottiePlayer, Error?) -> Void)? = nil
     ) {
         let animation = DotLottieAnimation(webURL: url.absoluteString, config: config)
         self.init(dotLottieAnimation: animation, config: config)
@@ -975,7 +975,7 @@ open class DotLottiePlayerView: PlatformView {
 }
 
 #if canImport(UIKit)
-extension DotLottiePlayerView: UIGestureRecognizerDelegate, GestureManagerDelegate {
+extension LottiePlayer: UIGestureRecognizerDelegate, GestureManagerDelegate {
     public func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
         true
     }
@@ -1031,7 +1031,7 @@ extension DotLottiePlayerView: UIGestureRecognizerDelegate, GestureManagerDelega
 #endif
 
 #if canImport(AppKit)
-extension DotLottiePlayerView: GestureManagerDelegate {
+extension LottiePlayer: GestureManagerDelegate {
     func gestureManagerDidRecognizeTap(_ gestureManager: GestureManager, at location: CGPoint) {
         let mapped = mapCoordinatesToAnimation(location)
         stateMachinePostEvent(.click(x: Float(mapped.x), y: Float(mapped.y)))
@@ -1066,7 +1066,7 @@ extension DotLottiePlayerView: GestureManagerDelegate {
 
 // MARK: - DotLottieLoopMode
 
-/// Defines animation loop behavior for DotLottiePlayerView
+/// Defines animation loop behavior for LottiePlayer
 public enum DotLottieLoopMode {
     /// Animation is played once then stops
     case playOnce
