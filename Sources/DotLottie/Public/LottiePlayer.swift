@@ -1,9 +1,3 @@
-//
-//  DotLottiePlayerView.swift
-//
-//  Created to provide a LottieAnimationView-like API for dotlottie
-//
-
 #if canImport(UIKit)
 import UIKit
 import Metal
@@ -26,9 +20,6 @@ public typealias PlatformColor = NSColor
 
 #if canImport(UIKit) || canImport(AppKit)
 
-/// A platform view subclass for rendering dotlottie animations with a LottieAnimationView-like API.
-/// This provides an alternative way to use dotlottie that follows the same patterns as LottieAnimationView.
-/// Available on iOS and macOS.
 @IBDesignable
 open class LottiePlayer: PlatformView {
     
@@ -1066,7 +1057,6 @@ extension LottiePlayer: GestureManagerDelegate {
 
 // MARK: - DotLottieLoopMode
 
-/// Defines animation loop behavior for LottiePlayer
 public enum DotLottieLoopMode {
     /// Animation is played once then stops
     case playOnce

@@ -1,15 +1,8 @@
-//
-//  DotLottiePlayerSwiftUIView.swift
-//
-//  A SwiftUI wrapper for LottiePlayer, similar to LottieView
-//
-
 #if canImport(SwiftUI)
 import SwiftUI
 
 // MARK: - LottiePlayerView
 
-/// A SwiftUI wrapper for `LottiePlayer` that provides a LottieView-like API for dotlottie animations
 @available(iOS 14.0, macOS 11.0, *)
 public struct LottiePlayerView<Placeholder: View>: View {
     
@@ -228,7 +221,6 @@ public struct LottiePlayerView<Placeholder: View>: View {
 
 // MARK: - DotLottiePlaybackMode
 
-/// Playback mode for LottiePlayerView
 public enum DotLottiePlaybackMode {
     case playing
     case paused
