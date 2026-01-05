@@ -2,7 +2,7 @@
 //  SwiftUIExampleView.swift
 //  DotLottieIosTestApp
 //
-//  Example of using LottiePlayerView (SwiftUI approach similar to LottieView)
+//  Example of using DotLottiePlayerView (SwiftUI approach similar to LottieView)
 //
 
 import SwiftUI
@@ -14,7 +14,7 @@ struct SwiftUIExampleView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 24) {
-                Text("SwiftUI LottiePlayerView Examples")
+                Text("SwiftUI DotLottiePlayerView Examples")
                     .font(.headline)
                     .padding(.top)
                 

@@ -15,7 +15,7 @@ struct Example5_CustomConfiguration: View {
                 .font(.subheadline)
                 .foregroundColor(.secondary)
             
-            LottiePlayerView {
+            DotLottiePlayerView {
                 DotLottieAnimation(
                     fileName: "Flow 1",
                     config: AnimationConfig(

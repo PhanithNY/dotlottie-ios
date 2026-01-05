@@ -15,7 +15,7 @@ struct Example4_AsyncLoading: View {
                 .font(.subheadline)
                 .foregroundColor(.secondary)
             
-            LottiePlayerView {
+            DotLottiePlayerView {
                 // Simulate async loading
                 try await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
                 return DotLottieAnimation(

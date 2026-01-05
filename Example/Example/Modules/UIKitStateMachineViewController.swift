@@ -20,7 +20,7 @@ class UIKitStateMachineViewController: UIViewController {
     private var instructionLabel: UILabel!
     private var stateMachineButton: UIButton!
     private var stateStackView: UIStackView!
-    private var playerView: LottiePlayer?
+    private var playerView: DotLottiePlayerUIView?
     
     private var availableStateMachines: [ManifestStateMachine] = []
     private var selectedStateMachineId: String?
@@ -235,8 +235,8 @@ class UIKitStateMachineViewController: UIViewController {
             }
         }
         
-        // Use LottiePlayer for playback and interaction
-        let player = LottiePlayer(dotLottieAnimation: animation, config: config)
+        // Use DotLottiePlayerUIView for playback and interaction
+        let player = DotLottiePlayerUIView(dotLottieAnimation: animation, config: config)
         player.translatesAutoresizingMaskIntoConstraints = false
         player.backgroundColor = .clear
         player.layer.cornerRadius = 12

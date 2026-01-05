@@ -20,12 +20,12 @@ struct ContentView: View {
                 
                 Section(header: Text("New LottieAnimationView-Style API")) {
                     #if canImport(UIKit)
-                    NavigationLink("UIKit Example (LottiePlayer)") {
+                    NavigationLink("UIKit Example (DotLottiePlayerUIView)") {
                         UIKitExampleViewWrapper()
                     }
                     #endif
                     
-                    NavigationLink("SwiftUI Example (LottiePlayerView)") {
+                    NavigationLink("SwiftUI Example (DotLottiePlayerView)") {
                         SwiftUIExampleView()
                     }
                 }
@@ -55,14 +55,14 @@ struct ContentView: View {
                             .font(.caption)
                         
                         #if canImport(UIKit)
-                        Text("• UIKit: LottiePlayer (like LottieAnimationView)")
+                        Text("• UIKit: DotLottiePlayerUIView (like LottieAnimationView)")
                             .font(.caption)
                         #else
-                        Text("• AppKit: LottiePlayer (like LottieAnimationView)")
+                        Text("• AppKit: DotLottiePlayerUIView (like LottieAnimationView)")
                             .font(.caption)
                         #endif
                         
-                        Text("• SwiftUI: LottiePlayerView (like LottieView)")
+                        Text("• SwiftUI: DotLottiePlayerView (like LottieView)")
                             .font(.caption)
                         
                         #if canImport(UIKit)

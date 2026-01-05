@@ -26,7 +26,7 @@ struct Example1_SimpleLooping: View {
                 .font(.subheadline)
                 .foregroundColor(.secondary)
             
-            LottiePlayerView(animation: animation)
+            DotLottiePlayerView(animation: animation)
                 .looping()
                 .animationDidLoad { _ in
                     animationLoaded = true

@@ -31,7 +31,7 @@ struct Example2_WithControls: View {
                 .font(.subheadline)
                 .foregroundColor(.secondary)
             
-            LottiePlayerView(animation: animation)
+            DotLottiePlayerView(animation: animation)
                 .loopMode(loopMode)
                 .animationSpeed(animationSpeed)
                 .playbackMode(isPlaying ? .playing : .paused)

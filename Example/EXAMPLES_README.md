@@ -24,14 +24,14 @@ animation.pause()
 animation.setFrame(frame: 0)
 ```
 
-### 2. UIKit Example - LottiePlayer
+### 2. UIKit Example - DotLottiePlayerUIView
 **File:** `UIKitExampleViewController.swift`
 
 A UIKit view similar to `LottieAnimationView` from lottie-ios. This provides a familiar API for UIKit developers:
 
 ```swift
 // Initialize
-let playerView = LottiePlayer(
+let playerView = DotLottiePlayerUIView(
     name: "Flow 1",
     bundle: .main,
     config: AnimationConfig()
@@ -63,25 +63,25 @@ let totalFrames = playerView.totalFrames
 - ✅ Real-time status updates
 - ✅ Frame and progress tracking
 
-### 3. SwiftUI Example - LottiePlayerView
+### 3. SwiftUI Example - DotLottiePlayerView
 **File:** `SwiftUIExampleView.swift`
 
 A SwiftUI view similar to `LottieView` from lottie-ios. This uses SwiftUI's declarative syntax with modifier chains:
 
 ```swift
 // Simple looping animation
-LottiePlayerView(animation: animation)
+DotLottiePlayerView(animation: animation)
     .looping()
     .animationSpeed(2.0)
     .frame(height: 200)
 
 // With progress control
-LottiePlayerView(animation: animation)
+DotLottiePlayerView(animation: animation)
     .currentProgress(0.5)
     .playbackMode(.paused)
 
 // Async loading with placeholder
-LottiePlayerView {
+DotLottiePlayerView {
     try await DotLottieAnimation(webURL: url, config: config)
 } placeholder: {
     ProgressView()
@@ -114,41 +114,41 @@ LottiePlayerView {
 
 ## Initializer Options
 
-### LottiePlayer (UIKit)
+### DotLottiePlayerUIView (UIKit)
 
 ```swift
 // From bundle
-LottiePlayer(name: "animation", bundle: .main, config: config)
+DotLottiePlayerUIView(name: "animation", bundle: .main, config: config)
 
 // From file path
-LottiePlayer(filePath: "/path/to/file.lottie", config: config)
+DotLottiePlayerUIView(filePath: "/path/to/file.lottie", config: config)
 
 // From URL
-LottiePlayer(url: URL(string: "https://...")!, config: config)
+DotLottiePlayerUIView(url: URL(string: "https://...")!, config: config)
 
 // From animation data (JSON)
-LottiePlayer(animationData: jsonString, config: config)
+DotLottiePlayerUIView(animationData: jsonString, config: config)
 
 // From dotlottie data
-LottiePlayer(dotLottieData: data, config: config)
+DotLottiePlayerUIView(dotLottieData: data, config: config)
 
 // With existing animation
-LottiePlayer(dotLottieAnimation: animation, config: config)
+DotLottiePlayerUIView(dotLottieAnimation: animation, config: config)
 ```
 
-### LottiePlayerView (SwiftUI)
+### DotLottiePlayerView (SwiftUI)
 
 ```swift
 // With existing animation
-LottiePlayerView(animation: dotLottieAnimation)
+DotLottiePlayerView(animation: dotLottieAnimation)
 
 // Async loading
-LottiePlayerView {
+DotLottiePlayerView {
     try await loadAnimation()
 }
 
 // Async with placeholder
-LottiePlayerView {
+DotLottiePlayerView {
     try await loadAnimation()
 } placeholder: {
     ProgressView()
@@ -157,7 +157,7 @@ LottiePlayerView {
 
 ## Key Differences
 
-| Feature | Original API | LottiePlayer | LottiePlayerView |
+| Feature | Original API | DotLottiePlayerUIView | DotLottiePlayerView |
 |---------|-------------|---------------------|---------------------------|
 | Platform | SwiftUI/UIKit | UIKit | SwiftUI |
 | API Style | Direct calls | UIView properties | SwiftUI modifiers |
@@ -174,7 +174,7 @@ LottiePlayerView {
 
 ## Migration Guide
 
-### From Original API to LottiePlayer
+### From Original API to DotLottiePlayerUIView
 
 ```swift
 // Before (Original)
@@ -183,11 +183,11 @@ let view = DotLottieAnimationView(dotLottieViewModel: animation)
 animation.play()
 
 // After (New)
-let playerView = LottiePlayer(name: "animation", config: config)
+let playerView = DotLottiePlayerUIView(name: "animation", config: config)
 playerView.play()
 ```
 
-### From Original API to LottiePlayerView
+### From Original API to DotLottiePlayerView
 
 ```swift
 // Before (Original)
@@ -195,7 +195,7 @@ let animation = DotLottieAnimation(fileName: "animation", config: config)
 animation.view()
 
 // After (New)
-LottiePlayerView(animation: animation)
+DotLottiePlayerView(animation: animation)
     .looping()
 ```
 

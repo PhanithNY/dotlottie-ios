@@ -140,7 +140,7 @@ struct Example7_StateMachine: View {
                                     }
                                 }
                         } else {
-                            LottiePlayerView(animation: animation)
+                            DotLottiePlayerView(animation: animation)
                                 .loopMode(animation.loop() ? .loop : .playOnce)
                                 .playbackMode(viewModel.isStateMachineEnabled ? .paused : .playing)
                                 .frame(height: 250)

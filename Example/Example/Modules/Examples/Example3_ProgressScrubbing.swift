@@ -31,7 +31,7 @@ struct Example3_ProgressScrubbing: View {
                 .font(.subheadline)
                 .foregroundColor(.secondary)
             
-            LottiePlayerView(animation: animation)
+            DotLottiePlayerView(animation: animation)
                 .playbackMode(isPlaying ? .playing : .paused)
                 .currentProgress(isSliderBeingDragged ? currentProgress : nil)
                 .loopMode(loopMode)

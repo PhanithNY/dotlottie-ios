@@ -2,7 +2,7 @@
 //  UIKitExampleViewController.swift
 //  DotLottieIosTestApp
 //
-//  Example of using LottiePlayer (UIKit approach similar to LottieAnimationView)
+//  Example of using DotLottiePlayerUIView (UIKit approach similar to LottieAnimationView)
 //
 #if canImport(UIKit)
 import UIKit
@@ -10,7 +10,7 @@ import DotLottie
 
 class UIKitExampleViewController: UIViewController {
     
-    private var playerView: LottiePlayer!
+    private var playerView: DotLottiePlayerUIView!
     private var playPauseButton: UIButton!
     private var stopButton: UIButton!
     private var progressSlider: UISlider!
@@ -23,7 +23,7 @@ class UIKitExampleViewController: UIViewController {
         super.viewDidLoad()
         
         view.backgroundColor = .systemBackground
-        title = "UIKit LottiePlayer Example"
+        title = "UIKit DotLottiePlayerUIView Example"
         
         setupPlayerView()
         setupControls()
@@ -39,7 +39,7 @@ class UIKitExampleViewController: UIViewController {
         )
         
         // Initialize with file name from bundle
-        playerView = LottiePlayer(
+        playerView = DotLottiePlayerUIView(
             name: "Flow 1",
             bundle: .main,
             config: config

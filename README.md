@@ -86,19 +86,19 @@ class AnimationViewController: UIViewController {
 }
 ```
 
-## Alternative API: LottiePlayer and LottiePlayerView
+## Alternative API: DotLottiePlayerUIView and DotLottiePlayerView
 
-As an alternative to the `DotLottieAnimation` API, you can use `LottiePlayer` (UIKit/AppKit) and `LottiePlayerView` (SwiftUI). These provide a familiar API similar to `LottieAnimationView` and `LottieView` from lottie-ios, making it easier for developers familiar with those libraries.
+As an alternative to the `DotLottieAnimation` API, you can use `DotLottiePlayerUIView` (UIKit/AppKit) and `DotLottiePlayerView` (SwiftUI). These provide a familiar API similar to `LottieAnimationView` and `LottieView` from lottie-ios, making it easier for developers familiar with those libraries.
 
-### UIKit/AppKit - LottiePlayer
+### UIKit/AppKit - DotLottiePlayerUIView
 
-`LottiePlayer` is a platform view (UIView on iOS, NSView on macOS) that provides a `LottieAnimationView`-like API for dotlottie animations.
+`DotLottiePlayerUIView` is a platform view (UIView on iOS, NSView on macOS) that provides a `LottieAnimationView`-like API for dotlottie animations.
 
 #### Loading animations
 
 ```swift
 // From bundle
-let playerView = LottiePlayer(
+let playerView = DotLottiePlayerUIView(
     name: "cool_animation",
     bundle: .main,
     config: AnimationConfig(autoplay: true, loop: true)
@@ -111,14 +111,14 @@ let playerView = LottiePlayer(
 }
 
 // From URL
-let playerView = LottiePlayer(
+let playerView = DotLottiePlayerUIView(
     url: URL(string: "https://lottie.host/link.lottie")!,
     config: AnimationConfig()
 )
 
 // With existing DotLottieAnimation
 let animation = DotLottieAnimation(fileName: "cool_animation", config: config)
-let playerView = LottiePlayer(dotLottieAnimation: animation, config: config)
+let playerView = DotLottiePlayerUIView(dotLottieAnimation: animation, config: config)
 ```
 
 #### Controlling playback
@@ -139,9 +139,9 @@ let frame = playerView.currentFrame
 let totalFrames = playerView.totalFrames
 ```
 
-### SwiftUI - LottiePlayerView
+### SwiftUI - DotLottiePlayerView
 
-`LottiePlayerView` is a SwiftUI view that provides a `LottieView`-like API with modifier chains.
+`DotLottiePlayerView` is a SwiftUI view that provides a `LottieView`-like API with modifier chains.
 
 #### Basic usage
 
@@ -153,7 +153,7 @@ struct AnimationView: View {
     )
     
     var body: some View {
-        LottiePlayerView(animation: animation)
+        DotLottiePlayerView(animation: animation)
             .looping()
             .animationSpeed(2.0)
             .frame(height: 200)
@@ -164,7 +164,7 @@ struct AnimationView: View {
 #### Async loading with placeholder
 
 ```swift
-LottiePlayerView {
+DotLottiePlayerView {
     // Load animation asynchronously
     let (data, _) = try await URLSession.shared.data(from: url)
     return DotLottieAnimation(dotLottieData: data, config: config)
@@ -177,7 +177,7 @@ LottiePlayerView {
 #### Available modifiers
 
 ```swift
-LottiePlayerView(animation: animation)
+DotLottiePlayerView(animation: animation)
     .looping()                    // Loop the animation
     .playing()                    // Play once
     .paused()                     // Pause at current frame
@@ -199,7 +199,7 @@ LottiePlayerView(animation: animation)
 
 - **Use `DotLottieAnimation` + `DotLottieView`**: When you prefer the original API or need direct access to the animation model and player state.
 
-- **Use `LottiePlayer` / `LottiePlayerView`**: When you're familiar with lottie-ios APIs or want a more view-centric approach with properties and modifiers similar to `LottieAnimationView` and `LottieView`.
+- **Use `DotLottiePlayerUIView` / `DotLottiePlayerView`**: When you're familiar with lottie-ios APIs or want a more view-centric approach with properties and modifiers similar to `LottieAnimationView` and `LottieView`.
 
 Both APIs are fully featured and support all dotlottie capabilities including state machines, interactivity, and theming.
 

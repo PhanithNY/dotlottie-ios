@@ -131,7 +131,7 @@ struct AnimationCard: View {
             ZStack {
                 if let animation = holder.animation {
                     if animation.isLoaded() {
-                        LottiePlayerView(animation: animation)
+                        DotLottiePlayerView(animation: animation)
                             .looping()
                             .frame(width: 200, height: 200)
                     } else {

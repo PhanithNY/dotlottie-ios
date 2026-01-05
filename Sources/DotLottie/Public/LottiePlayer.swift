@@ -21,7 +21,7 @@ public typealias PlatformColor = NSColor
 #if canImport(UIKit) || canImport(AppKit)
 
 @IBDesignable
-open class LottiePlayer: PlatformView {
+open class DotLottiePlayerUIView: PlatformView {
     
     // MARK: - Public Properties
     
@@ -109,7 +109,7 @@ open class LottiePlayer: PlatformView {
     }
     
     /// A closure that is called when the animation is loaded
-    public var animationLoaded: ((_ playerView: LottiePlayer, _ animation: DotLottieAnimation?) -> Void)?
+    public var animationLoaded: ((_ playerView: DotLottiePlayerUIView, _ animation: DotLottieAnimation?) -> Void)?
     
     /// Animation playback mode
     public var mode: Mode {
@@ -189,7 +189,7 @@ open class LottiePlayer: PlatformView {
         name: String,
         bundle: Bundle = .main,
         config: AnimationConfig = AnimationConfig(),
-        completion: ((LottiePlayer, Error?) -> Void)? = nil
+        completion: ((DotLottiePlayerUIView, Error?) -> Void)? = nil
     ) {
         let animation = DotLottieAnimation(fileName: name, bundle: bundle, config: config)
         self.init(dotLottieAnimation: animation, config: config)
@@ -210,7 +210,7 @@ open class LottiePlayer: PlatformView {
     public convenience init(
         filePath: String,
         config: AnimationConfig = AnimationConfig(),
-        completion: ((LottiePlayer, Error?) -> Void)? = nil
+        completion: ((DotLottiePlayerUIView, Error?) -> Void)? = nil
     ) {
         // For file path, we need to load the data first
         guard let data = try? Data(contentsOf: URL(fileURLWithPath: filePath)) else {
@@ -238,7 +238,7 @@ open class LottiePlayer: PlatformView {
         url: URL,
         config: AnimationConfig = AnimationConfig(),
         session: URLSession = .shared,
-        completion: ((LottiePlayer, Error?) -> Void)? = nil
+        completion: ((DotLottiePlayerUIView, Error?) -> Void)? = nil
     ) {
         let animation = DotLottieAnimation(webURL: url.absoluteString, config: config)
         self.init(dotLottieAnimation: animation, config: config)
@@ -966,7 +966,7 @@ open class LottiePlayer: PlatformView {
 }
 
 #if canImport(UIKit)
-extension LottiePlayer: UIGestureRecognizerDelegate, GestureManagerDelegate {
+extension DotLottiePlayerUIView: UIGestureRecognizerDelegate, GestureManagerDelegate {
     public func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
         true
     }
@@ -1022,7 +1022,7 @@ extension LottiePlayer: UIGestureRecognizerDelegate, GestureManagerDelegate {
 #endif
 
 #if canImport(AppKit)
-extension LottiePlayer: GestureManagerDelegate {
+extension DotLottiePlayerUIView: GestureManagerDelegate {
     func gestureManagerDidRecognizeTap(_ gestureManager: GestureManager, at location: CGPoint) {
         let mapped = mapCoordinatesToAnimation(location)
         stateMachinePostEvent(.click(x: Float(mapped.x), y: Float(mapped.y)))

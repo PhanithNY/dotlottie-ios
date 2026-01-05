@@ -1,8 +1,8 @@
 # State Machine Examples
 
-This document describes the state machine functionality added to `LottiePlayer` and the test app examples.
+This document describes the state machine functionality added to `DotLottiePlayerUIView` and the test app examples.
 
-## State Machine Support in LottiePlayer
+## State Machine Support in DotLottiePlayerUIView
 
 ### Loading State Machines
 
@@ -147,7 +147,7 @@ The state machine example demonstrates:
 ### UIKit Example
 
 ```swift
-let playerView = LottiePlayer(name: "click-button", config: config)
+let playerView = DotLottiePlayerUIView(name: "click-button", config: config)
 
 // Load state machine
 if let data = loadStateMachineJSON() {
@@ -168,7 +168,7 @@ if let data = loadStateMachineJSON() {
 @StateObject var viewModel = StateMachineViewModel()
 
 var body: some View {
-    LottiePlayerViewWrapper(playerView: viewModel.playerView)
+    DotLottiePlayerViewWrapper(playerView: viewModel.playerView)
         .gesture(
             DragGesture(minimumDistance: 0)
                 .onEnded { gesture in
@@ -214,7 +214,7 @@ playerView.dotLottieAnimation = newAnimation
 
 1. **Load state machines after animation loads**
    ```swift
-   playerView = LottiePlayer(name: "animation") { view, error in
+   playerView = DotLottiePlayerUIView(name: "animation") { view, error in
        if error == nil {
            self.loadAndStartStateMachine()
        }
