@@ -22,13 +22,13 @@ public enum PlayerState {
 }
 
 public struct AnimationModel {
-    var width: Int = 512
+    public var width: Int = 512
     
-    var height: Int = 512
+    public var height: Int = 512
 
-    var error: Bool = false
+    public var error: Bool = false
     
-    var errorMessage: String = ""
+    public var errorMessage: String = ""
     
-    var backgroundColor: CIImage = CIImage.clear
+    public var backgroundColor: CIImage = CIImage.clear
 }

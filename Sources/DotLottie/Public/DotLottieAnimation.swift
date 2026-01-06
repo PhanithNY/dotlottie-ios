@@ -577,6 +577,15 @@ public final class DotLottieAnimation: ObservableObject {
         
         return sm
     }
+
+    /// Convenience helper to load and start a specific state machine by id.
+    /// It stops any running state machine, loads the requested one, and starts it.
+    @discardableResult
+    public func stateMachineStart(id: String, openUrlPolicy: OpenUrlPolicy = OpenUrlPolicy(requireUserInteraction: true, whitelist: [])) -> Bool {
+        _ = stateMachineStop()
+        guard stateMachineLoad(id: id) else { return false }
+        return stateMachineStart(openUrlPolicy: openUrlPolicy)
+    }
     
     public func stateMachinePostEvent(_ event: Event, force: Bool? = false) {
         // Extract the event name before the parenthesis
