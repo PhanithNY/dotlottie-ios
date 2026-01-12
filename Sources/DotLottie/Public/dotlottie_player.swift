@@ -637,7 +637,7 @@ public protocol DotLottiePlayerProtocol: AnyObject {
 
     func setQuality(quality: UInt8) -> Bool
 
-    func setSlots(slots: String) -> Bool
+    func setSlotsStr(slots: String) -> Bool
 
     func setTheme(themeId: String) -> Bool
 
@@ -1041,10 +1041,10 @@ open class DotLottiePlayer:
         })
     }
 
-    open func setSlots(slots: String) -> Bool {
+    open func setSlotsStr(slots: String) -> Bool {
         return try! FfiConverterBool.lift(try! rustCall {
-            uniffi_dotlottie_player_fn_method_dotlottieplayer_set_slots(self.uniffiClonePointer(),
-                                                                        FfiConverterString.lower(slots), $0)
+            uniffi_dotlottie_player_fn_method_dotlottieplayer_set_slots_str(self.uniffiClonePointer(),
+                                                                            FfiConverterString.lower(slots), $0)
         })
     }
 
@@ -3700,6 +3700,15 @@ public func createDefaultOpenUrlPolicy() -> OpenUrlPolicy {
     })
 }
 
+public func registerFont(fontName: String, fontData: Data) -> Bool {
+    return try! FfiConverterBool.lift(try! rustCall {
+        uniffi_dotlottie_player_fn_func_register_font(
+            FfiConverterString.lower(fontName),
+            FfiConverterData.lower(fontData), $0
+        )
+    })
+}
+
 public func transformThemeToLottieSlots(themeData: String, animationId: String) -> String {
     return try! FfiConverterString.lift(try! rustCall {
         uniffi_dotlottie_player_fn_func_transform_theme_to_lottie_slots(
@@ -3732,6 +3741,9 @@ private var initializationResult: InitializationResult = {
         return InitializationResult.apiChecksumMismatch
     }
     if uniffi_dotlottie_player_checksum_func_create_default_open_url_policy() != 13935 {
+        return InitializationResult.apiChecksumMismatch
+    }
+    if uniffi_dotlottie_player_checksum_func_register_font() != 7201 {
         return InitializationResult.apiChecksumMismatch
     }
     if uniffi_dotlottie_player_checksum_func_transform_theme_to_lottie_slots() != 23836 {
@@ -3854,7 +3866,7 @@ private var initializationResult: InitializationResult = {
     if uniffi_dotlottie_player_checksum_method_dotlottieplayer_set_quality() != 55740 {
         return InitializationResult.apiChecksumMismatch
     }
-    if uniffi_dotlottie_player_checksum_method_dotlottieplayer_set_slots() != 64804 {
+    if uniffi_dotlottie_player_checksum_method_dotlottieplayer_set_slots_str() != 29936 {
         return InitializationResult.apiChecksumMismatch
     }
     if uniffi_dotlottie_player_checksum_method_dotlottieplayer_set_theme() != 33069 {
