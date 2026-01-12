@@ -264,7 +264,7 @@ class Player: ObservableObject {
     }
     
     public func setSlots(_ slots: String) -> Bool {
-        dotLottiePlayer.setSlots(slots: slots);
+        dotLottiePlayer.setSlotsStr(slots: slots);
     }
     
     public func setTheme(_ themeId: String) -> Bool {
