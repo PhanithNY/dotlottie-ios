@@ -13,12 +13,14 @@ enum AnimationLoadErrors: Error {
     case convertToStringError
 }
 
-enum PlayerErrors: Error {
+public enum PlayerErrors: Error {
     case setFrameError
     case resizeError
     case stopError
     case pauseError
     case playError
+    case bufferAllocationError
+    case rendererConfigurationError
 }
 
 enum FileErrors : Error {
