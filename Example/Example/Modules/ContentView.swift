@@ -19,11 +19,11 @@ struct ContentView: View {
                 }
                 
                 Section(header: Text("New LottieAnimationView-Style API")) {
-                    #if canImport(UIKit)
+#if canImport(UIKit)
                     NavigationLink("UIKit Example (DotLottiePlayerUIView)") {
                         UIKitExampleViewWrapper()
                     }
-                    #endif
+#endif
                     
                     NavigationLink("SwiftUI Example (DotLottiePlayerView)") {
                         SwiftUIExampleView()
@@ -35,11 +35,23 @@ struct ContentView: View {
                         Example7_StateMachine()
                     }
                     
-                    #if canImport(UIKit)
+#if canImport(UIKit)
                     NavigationLink("UIKit State Machine Example") {
                         UIKitStateMachineViewWrapper()
                     }
-                    #endif
+#endif
+                }
+                
+                Section(header: Text("Performance & WebGPU")) {
+                    NavigationLink("WebGPU Direct Rendering (SwiftUI)") {
+                        Example8_WebGPURendering()
+                    }
+                    
+#if canImport(UIKit)
+                    NavigationLink("WebGPU Direct Rendering (UIKit)") {
+                        UIKitWebGPUViewWrapper()
+                    }
+#endif
                 }
                 
                 Section(header: Text("About")) {
@@ -54,24 +66,24 @@ struct ContentView: View {
                         Text("• Original DotLottie API")
                             .font(.caption)
                         
-                        #if canImport(UIKit)
+#if canImport(UIKit)
                         Text("• UIKit: DotLottiePlayerUIView (like LottieAnimationView)")
                             .font(.caption)
-                        #else
+#else
                         Text("• AppKit: DotLottiePlayerUIView (like LottieAnimationView)")
                             .font(.caption)
-                        #endif
+#endif
                         
                         Text("• SwiftUI: DotLottiePlayerView (like LottieView)")
                             .font(.caption)
                         
-                        #if canImport(UIKit)
+#if canImport(UIKit)
                         Text("• State Machine examples with touch interaction")
                             .font(.caption)
-                        #else
+#else
                         Text("• State Machine examples with mouse interaction")
                             .font(.caption)
-                        #endif
+#endif
                     }
                     .padding(.vertical, 8)
                 }
@@ -91,7 +103,7 @@ struct OriginalExampleView: View {
             loop: true
         )
     )
-        
+    
     var body: some View {
         VStack {
             animation.view()
@@ -133,6 +145,16 @@ struct UIKitStateMachineViewWrapper: UIViewControllerRepresentable {
     }
     
     func updateUIViewController(_ uiViewController: UIKitStateMachineViewController, context: Context) {
+        // No updates needed
+    }
+}
+
+struct UIKitWebGPUViewWrapper: UIViewControllerRepresentable {
+    func makeUIViewController(context: Context) -> UIKitWebGPUViewController {
+        return UIKitWebGPUViewController()
+    }
+    
+    func updateUIViewController(_ uiViewController: UIKitWebGPUViewController, context: Context) {
         // No updates needed
     }
 }

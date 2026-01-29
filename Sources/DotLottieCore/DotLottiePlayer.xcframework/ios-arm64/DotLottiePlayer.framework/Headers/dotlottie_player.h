@@ -286,6 +286,14 @@ typedef struct dotlottieStateMachineInternalEvent {
 
 #define dotlottieWGPU_REQUEST_DEVICE_STATUS_SUCCESS 1
 
+#define dotlottieWGPU_TEXTURE_FORMAT_BGRA8_UNORM 23
+
+#define dotlottieWGPU_PRESENT_MODE_FIFO 2
+
+#define dotlottieWGPU_TEXTURE_USAGE_RENDER_ATTACHMENT 16
+
+#define dotlottieWGPU_COMPOSITE_ALPHA_MODE_OPAQUE 1
+
 #ifdef __cplusplus
 extern "C" {
 #endif // __cplusplus
