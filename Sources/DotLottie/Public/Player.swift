@@ -9,15 +9,25 @@ import Foundation
 import CoreImage
 import DotLottiePlayer
 
-class Player: ObservableObject {
+public class Player: ObservableObject {
     private let dotLottiePlayer: DotLottiePlayer
 
     public var WIDTH: UInt32 = 512
     public var HEIGHT: UInt32 = 512
 
+    // Rendering mode
+    private enum RenderMode {
+        case software
+        case webgpu
+    }
+    private var renderMode: RenderMode = .software
+
     // Software rendering buffer
     private var renderBuffer: UnsafeMutablePointer<UInt32>?
     private var bufferSize: Int = 0
+
+    // WebGPU rendering context
+    private var wgpuContext: UnsafeMutableRawPointer?
 
     private var currFrame: Float = -1.0;
     
@@ -25,7 +35,7 @@ class Player: ObservableObject {
     
     private var hasResized = false
     
-    init(config: Config, threads : Int? = nil) {
+    public init(config: Config, threads : Int? = nil) {
         if let threads = threads {
             self.dotLottiePlayer = DotLottiePlayer.withThreads(config: config, threads: UInt32(threads))
         } else {
@@ -37,8 +47,10 @@ class Player: ObservableObject {
         self.WIDTH = UInt32(width)
         self.HEIGHT = UInt32(height)
 
-        // Allocate buffer and set render target BEFORE loading animation
-        try allocateRenderBuffer()
+        // Allocate buffer and set render target BEFORE loading animation (only for software mode)
+        if renderMode == .software {
+            try allocateRenderBuffer()
+        }
 
         if (!dotLottiePlayer
             .loadAnimationData(animationData: animationData,
@@ -52,8 +64,10 @@ class Player: ObservableObject {
         self.WIDTH = UInt32(width)
         self.HEIGHT = UInt32(height)
 
-        // Allocate buffer and set render target BEFORE loading animation
-        try allocateRenderBuffer()
+        // Allocate buffer and set render target BEFORE loading animation (only for software mode)
+        if renderMode == .software {
+            try allocateRenderBuffer()
+        }
 
         if (!dotLottiePlayer.loadDotlottieData(fileData: data, width: self.WIDTH, height: self.HEIGHT)) {
             throw AnimationLoadErrors.loadAnimationDataError
@@ -64,8 +78,10 @@ class Player: ObservableObject {
         self.WIDTH = UInt32(width)
         self.HEIGHT = UInt32(height)
 
-        // Allocate buffer and set render target BEFORE loading animation
-        try allocateRenderBuffer()
+        // Allocate buffer and set render target BEFORE loading animation (only for software mode)
+        if renderMode == .software {
+            try allocateRenderBuffer()
+        }
 
         if (!dotLottiePlayer.loadAnimationPath(animationPath: animationPath,
                                                width: self.WIDTH,
@@ -78,8 +94,10 @@ class Player: ObservableObject {
         self.WIDTH = UInt32(width)
         self.HEIGHT = UInt32(height)
 
-        // Allocate buffer and set render target BEFORE loading animation
-        try allocateRenderBuffer()
+        // Allocate buffer and set render target BEFORE loading animation (only for software mode)
+        if renderMode == .software {
+            try allocateRenderBuffer()
+        }
 
         if (!dotLottiePlayer.loadAnimation(animationId: animationId,
                                            width: self.WIDTH,
@@ -133,6 +151,80 @@ class Player: ObservableObject {
         }
     }
 
+    /// Enable WebGPU rendering with a Metal layer
+    /// - Parameter metalLayer: Pointer to CAMetalLayer
+    /// - Returns: true if WebGPU was successfully initialized
+    /// - Note: Call this before loading animations to use GPU rendering
+    public func enableWebGPURendering(metalLayer: UnsafeMutableRawPointer) throws -> Bool {
+        print("[Swift] Creating WebGPU context from Metal layer...")
+
+        // Try to create WebGPU context with retries (async operation)
+        var context: UnsafeMutableRawPointer?
+        var attempts = 0
+        let maxAttempts = 5
+
+        while context == nil && attempts < maxAttempts {
+            context = DotLottiePlayer.createWebGPUContext(metalLayer: metalLayer)
+            if context == nil {
+                attempts += 1
+                print("[Swift] Attempt \(attempts) failed, retrying...")
+                Thread.sleep(forTimeInterval: 0.1) // Wait 100ms
+            }
+        }
+
+        guard let wgpuContext = context else {
+            print("[Swift] Failed to create WebGPU context after \(maxAttempts) attempts")
+            throw PlayerErrors.rendererConfigurationError
+        }
+
+        print("[Swift] WebGPU context created, getting pointers...")
+
+        // Get WebGPU pointers
+        guard let pointers = DotLottiePlayer.getWebGPUPointers(context: wgpuContext) else {
+            print("[Swift] Failed to get WebGPU pointers")
+            DotLottiePlayer.freeWebGPUContext(context: wgpuContext)
+            throw PlayerErrors.rendererConfigurationError
+        }
+
+        print("[Swift] Got pointers - device: 0x\(String(pointers.device, radix: 16)), instance: 0x\(String(pointers.instance, radix: 16)), surface: 0x\(String(pointers.surface, radix: 16))")
+
+        // Set WebGPU target with the created pointers
+        let device = UnsafeMutableRawPointer(bitPattern: UInt(pointers.device))
+        let instance = UnsafeMutableRawPointer(bitPattern: UInt(pointers.instance))
+        let surface = UnsafeMutableRawPointer(bitPattern: UInt(pointers.surface))!
+
+        if !dotLottiePlayer.setWebGPUTarget(
+            device: device,
+            instance: instance,
+            target: surface,
+            width: WIDTH,
+            height: HEIGHT,
+            colorSpace: .abgr8888s,
+            type: 0  // 0 = surface, 1 = texture
+        ) {
+            print("[Swift] setWebGPUTarget failed")
+            DotLottiePlayer.freeWebGPUContext(context: wgpuContext)
+            throw PlayerErrors.rendererConfigurationError
+        }
+
+        print("[Swift] WebGPU target set successfully")
+
+        // Store context and update mode
+        self.wgpuContext = wgpuContext
+        renderMode = .webgpu
+
+        return true
+    }
+
+    /// Disable WebGPU rendering and fall back to software rendering
+    public func disableWebGPURendering() {
+        if let context = wgpuContext {
+            DotLottiePlayer.freeWebGPUContext(context: context)
+            wgpuContext = nil
+        }
+        renderMode = .software
+    }
+
     public func tick() -> CGImage? {
         if !self.isLoaded() {
             return nil
@@ -140,6 +232,17 @@ class Player: ObservableObject {
 
         let tick = dotLottiePlayer.tick()
 
+        // WebGPU mode: renders directly to Metal surface, no CGImage available
+        if renderMode == .webgpu {
+            if tick || !hasRenderedFirstFrame || currFrame != dotLottiePlayer.currentFrame() || hasResized {
+                self.currFrame = dotLottiePlayer.currentFrame()
+                hasRenderedFirstFrame = true
+                hasResized = false
+            }
+            return nil
+        }
+
+        // Software mode: create CGImage from buffer
         if tick || !hasRenderedFirstFrame || currFrame != dotLottiePlayer.currentFrame() || hasResized {
             self.currFrame = dotLottiePlayer.currentFrame()
             hasRenderedFirstFrame = true
@@ -382,5 +485,6 @@ class Player: ObservableObject {
 
     deinit {
         deallocateRenderBuffer()
+        disableWebGPURendering()
     }
 }

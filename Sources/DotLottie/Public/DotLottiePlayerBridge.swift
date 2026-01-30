@@ -601,19 +601,50 @@ public class DotLottiePlayer {
 
     /// Set WebGPU rendering target
     public func setWebGPUTarget(
-        device: UnsafeMutableRawPointer,
-        instance: UnsafeMutableRawPointer,
+        device: UnsafeMutableRawPointer?,
+        instance: UnsafeMutableRawPointer?,
         target: UnsafeMutableRawPointer,
         width: UInt32,
         height: UInt32,
-        colorSpace: ColorSpace = .argb8888,
-        type: Int32 = 5  // WGPU_BACKEND_TYPE_METAL for iOS/macOS
+        colorSpace: ColorSpace = .abgr8888s,
+        type: Int32 = 0  // 0 = surface, 1 = texture
     ) -> Bool {
         guard let ptr = playerPtr else { return false }
         return dotlottie_set_wg_target(
             ptr, device, instance, target, width, height,
             colorSpace.cColorSpace, type
         ) == dotlottieDOTLOTTIE_SUCCESS
+    }
+
+    // MARK: - WebGPU Context Management
+
+    /// Create WebGPU context from Metal layer
+    /// - Parameter metalLayer: Pointer to CAMetalLayer
+    /// - Returns: Opaque pointer to WgpuContext, or nil on failure
+    public static func createWebGPUContext(metalLayer: UnsafeMutableRawPointer) -> UnsafeMutableRawPointer? {
+        return dotlottie_create_wgpu_context_from_metal_layer(metalLayer)
+    }
+
+    /// Get WebGPU pointers from context
+    /// - Parameter context: Context from createWebGPUContext
+    /// - Returns: Tuple of (device, instance, surface) or nil on failure
+    public static func getWebGPUPointers(context: UnsafeMutableRawPointer) -> (device: UInt64, instance: UInt64, surface: UInt64)? {
+        var device: UInt64 = 0
+        var instance: UInt64 = 0
+        var surface: UInt64 = 0
+        dotlottie_wgpu_context_get_pointers(context, &device, &instance, &surface)
+
+        if device == 0 || instance == 0 || surface == 0 {
+            return nil
+        }
+
+        return (device: device, instance: instance, surface: surface)
+    }
+
+    /// Free WebGPU context
+    /// - Parameter context: Context to free
+    public static func freeWebGPUContext(context: UnsafeMutableRawPointer) {
+        dotlottie_free_wgpu_context(context)
     }
 
     // MARK: - Configuration
