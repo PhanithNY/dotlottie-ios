@@ -647,6 +647,14 @@ public class DotLottiePlayer {
         dotlottie_free_wgpu_context(context)
     }
 
+    /// Present WebGPU surface to display rendered frame
+    /// MUST be called after tick() when using WebGPU rendering
+    /// Without this, rendering happens off-screen but never displays
+    /// - Parameter context: WebGPU context from createWebGPUContext
+    public static func presentWebGPUSurface(context: UnsafeMutableRawPointer) {
+        dotlottie_wgpu_context_present(context)
+    }
+
     // MARK: - Configuration
 
     public func config() -> Config {

@@ -274,26 +274,6 @@ typedef struct dotlottieStateMachineInternalEvent {
   char message[dotlottieDOTLOTTIE_MAX_STR_LENGTH];
 } dotlottieStateMachineInternalEvent;
 
-#define dotlottieWGPU_BACKEND_TYPE_METAL 5
-
-#define dotlottieWGPU_POWER_PREFERENCE_HIGH_PERFORMANCE 1
-
-#define dotlottieWGPU_FEATURE_LEVEL_CORE 2
-
-#define dotlottieWGPU_CALLBACK_MODE_ALLOW_SPONTANEOUS 3
-
-#define dotlottieWGPU_REQUEST_ADAPTER_STATUS_SUCCESS 1
-
-#define dotlottieWGPU_REQUEST_DEVICE_STATUS_SUCCESS 1
-
-#define dotlottieWGPU_TEXTURE_FORMAT_BGRA8_UNORM 23
-
-#define dotlottieWGPU_PRESENT_MODE_FIFO 2
-
-#define dotlottieWGPU_TEXTURE_USAGE_RENDER_ATTACHMENT 16
-
-#define dotlottieWGPU_COMPOSITE_ALPHA_MODE_OPAQUE 1
-
 #ifdef __cplusplus
 extern "C" {
 #endif // __cplusplus
@@ -466,6 +446,20 @@ void dotlottie_wgpu_context_get_pointers(const void *context,
  * context must be a valid pointer and will be invalid after this call
  */
 void dotlottie_free_wgpu_context(void *context);
+
+/**
+ * Present WebGPU surface to display rendered frame
+ *
+ * CRITICAL: Must be called after rendering to show the frame on screen.
+ * Without this call, rendering happens off-screen but never displays.
+ *
+ * # Arguments
+ * * `context` - Opaque pointer from dotlottie_create_wgpu_context_from_metal_layer
+ *
+ * # Safety
+ * context must be a valid pointer from dotlottie_create_wgpu_context_from_metal_layer
+ */
+void dotlottie_wgpu_context_present(const void *context);
 
 int32_t dotlottie_set_theme(struct dotlottieDotLottiePlayer *ptr, const char *theme_id);
 
@@ -814,21 +808,17 @@ void dotlottie_webgl_context_destroy(uintptr_t context);
 
 extern uintptr_t emscripten_webgpu_get_device(void);
 
-/**
- * Request a WebGPU adapter
- *
- * # Returns
- * 0 on success, 1 on failure, 2 if request is in progress
- */
-int32_t dotlottie_webgpu_request_adapter(void);
+extern uintptr_t wgpuCreateInstance(const void *descriptor);
 
-/**
- * Request a WebGPU device
- *
- * # Returns
- * 0 on success, 1 on failure, 2 if request is in progress
- */
-int32_t dotlottie_webgpu_request_device(void);
+extern uintptr_t wgpuInstanceCreateSurface(uintptr_t instance, const void *descriptor);
+
+extern void wgpuInstanceRelease(uintptr_t instance);
+
+extern void wgpuAdapterRelease(uintptr_t adapter);
+
+extern void wgpuDeviceRelease(uintptr_t device);
+
+extern void wgpuSurfaceRelease(uintptr_t surface);
 
 /**
  * Get the WebGPU adapter handle

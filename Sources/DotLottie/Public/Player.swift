@@ -16,11 +16,11 @@ public class Player: ObservableObject {
     public var HEIGHT: UInt32 = 512
 
     // Rendering mode
-    private enum RenderMode {
+    public enum RenderMode {
         case software
         case webgpu
     }
-    private var renderMode: RenderMode = .software
+    public var renderMode: RenderMode = .software
 
     // Software rendering buffer
     private var renderBuffer: UnsafeMutablePointer<UInt32>?
@@ -223,6 +223,16 @@ public class Player: ObservableObject {
             wgpuContext = nil
         }
         renderMode = .software
+    }
+
+    /// Present WebGPU surface to display the rendered frame
+    /// CRITICAL: Must be called after tick() when using WebGPU rendering
+    /// Without this, rendering happens but nothing appears on screen
+    public func presentWebGPU() {
+        guard let context = wgpuContext else {
+            return
+        }
+        DotLottiePlayer.presentWebGPUSurface(context: context)
     }
 
     public func tick() -> CGImage? {

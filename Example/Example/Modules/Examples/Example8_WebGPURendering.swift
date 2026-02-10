@@ -18,25 +18,30 @@ import AppKit
 
 struct Example8_WebGPURendering: View {
     @State private var animationLoaded = false
-    @State private var useWebGPU = false  // Disabled: WebGPU context creation times out
+    @State private var useWebGPU = true  // Now enabled: Fixed with wgpuSurfacePresent()
     @State private var renderTime: Double = 0
+    @State private var actualRenderMode: String = "Unknown"
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Example 8: WebGPU Direct Rendering (WIP)")
+            Text("Example 8: WebGPU Direct Rendering")
                 .font(.subheadline)
                 .foregroundColor(.secondary)
 
-            Text("Note: WebGPU currently disabled due to context initialization issues")
+            Text("✅ Fixed: Added wgpuSurfacePresent() call")
                 .font(.caption)
-                .foregroundColor(.orange)
+                .foregroundColor(.green)
 
-            Text("Demonstrating software rendering performance")
+            Text("Hardware-accelerated Metal rendering via WebGPU")
                 .font(.caption)
                 .foregroundColor(.secondary)
 
             // WebGPU Player View
-            WebGPULottieView(useWebGPU: $useWebGPU, renderTime: $renderTime) { loaded in
+            WebGPULottieView(
+                useWebGPU: $useWebGPU,
+                renderTime: $renderTime,
+                actualRenderMode: $actualRenderMode
+            ) { loaded in
                 animationLoaded = loaded
             }
             .frame(height: 300)
@@ -55,10 +60,15 @@ struct Example8_WebGPURendering: View {
                 }
 
                 HStack {
-                    Image(systemName: useWebGPU ? "cpu.fill" : "memorychip.fill")
-                        .foregroundColor(useWebGPU ? .blue : .orange)
-                    Text("Mode: \(useWebGPU ? "WebGPU (Direct Metal)" : "Software (CPU Buffer)")")
-                        .font(.caption)
+                    Image(systemName: actualRenderMode == "webgpu" ? "cpu.fill" : "memorychip.fill")
+                        .foregroundColor(actualRenderMode == "webgpu" ? .green : .orange)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Mode: \(actualRenderMode == "webgpu" ? "WebGPU (GPU)" : "Software (CPU)")")
+                            .font(.caption)
+                        Text("Actual: \(actualRenderMode)")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                    }
                 }
 
                 if renderTime > 0 {
@@ -86,6 +96,7 @@ struct Example8_WebGPURendering: View {
 struct WebGPULottieView: UIViewRepresentable {
     @Binding var useWebGPU: Bool
     @Binding var renderTime: Double
+    @Binding var actualRenderMode: String
     var onLoadStatusChange: (Bool) -> Void
 
     func makeUIView(context: Context) -> MTKView {
@@ -119,6 +130,7 @@ struct WebGPULottieView: UIViewRepresentable {
         WebGPUCoordinator(
             useWebGPU: useWebGPU,
             renderTime: $renderTime,
+            actualRenderMode: $actualRenderMode,
             onLoadStatusChange: onLoadStatusChange
         )
     }
@@ -134,11 +146,14 @@ struct WebGPULottieView: UIViewRepresentable {
         private var metalCommandQueue: MTLCommandQueue!
         private var ciContext: CIContext!
         private var renderTimeBinding: Binding<Double>
+        private var actualRenderModeBinding: Binding<String>
         private var onLoadStatusChange: (Bool) -> Void
+        private var frameCount = 0
 
-        init(useWebGPU: Bool, renderTime: Binding<Double>, onLoadStatusChange: @escaping (Bool) -> Void) {
+        init(useWebGPU: Bool, renderTime: Binding<Double>, actualRenderMode: Binding<String>, onLoadStatusChange: @escaping (Bool) -> Void) {
             self.useWebGPU = useWebGPU
             self.renderTimeBinding = renderTime
+            self.actualRenderModeBinding = actualRenderMode
             self.onLoadStatusChange = onLoadStatusChange
             super.init()
 
@@ -265,17 +280,38 @@ struct WebGPULottieView: UIViewRepresentable {
 
             if useWebGPU {
                 // WebGPU mode: tick renders directly to Metal surface
-                let tickResult = player.tick()
-                print("WebGPU tick returned: \(tickResult != nil ? "CGImage" : "nil")")
+                player.tick()
 
-                // Just present the drawable (C layer already rendered to it)
+                // CRITICAL: Present WebGPU surface to display the rendered frame
+                // Without this, rendering happens off-screen but never appears
+                player.presentWebGPU()
+
+                // Debug: Log every 60 frames and update UI
+                frameCount += 1
+                if frameCount % 60 == 0 {
+                    let mode = "\(player.renderMode)"
+                    print("✅ WebGPU Mode - Frame \(frameCount) - Render Mode: \(mode)")
+                    DispatchQueue.main.async { [weak self] in
+                        self?.actualRenderModeBinding.wrappedValue = mode
+                    }
+                }
+
+                // Also present the Metal drawable
                 commandBuffer.present(drawable)
                 commandBuffer.commit()
 
             } else {
                 // Software mode: traditional CGImage → CIImage → Metal pipeline
                 if let cgImage = player.tick() {
-                    print("Software mode got CGImage: \(cgImage.width)x\(cgImage.height)")
+                    // Debug: Log every 60 frames and update UI
+                    frameCount += 1
+                    if frameCount % 60 == 0 {
+                        let mode = "\(player.renderMode)"
+                        print("🔧 Software Mode - Frame \(frameCount) - Render Mode: \(mode) - CGImage: \(cgImage.width)x\(cgImage.height)")
+                        DispatchQueue.main.async { [weak self] in
+                            self?.actualRenderModeBinding.wrappedValue = mode
+                        }
+                    }
                     let inputImage = CIImage(cgImage: cgImage)
 
                     // Scale to view size
@@ -321,6 +357,7 @@ struct WebGPULottieView: UIViewRepresentable {
 struct WebGPULottieView: NSViewRepresentable {
     @Binding var useWebGPU: Bool
     @Binding var renderTime: Double
+    @Binding var actualRenderMode: String
     var onLoadStatusChange: (Bool) -> Void
 
     func makeNSView(context: Context) -> MTKView {
@@ -354,6 +391,7 @@ struct WebGPULottieView: NSViewRepresentable {
         WebGPUCoordinator(
             useWebGPU: useWebGPU,
             renderTime: $renderTime,
+            actualRenderMode: $actualRenderMode,
             onLoadStatusChange: onLoadStatusChange
         )
     }
@@ -369,11 +407,14 @@ struct WebGPULottieView: NSViewRepresentable {
         private var metalCommandQueue: MTLCommandQueue!
         private var ciContext: CIContext!
         private var renderTimeBinding: Binding<Double>
+        private var actualRenderModeBinding: Binding<String>
         private var onLoadStatusChange: (Bool) -> Void
+        private var frameCount = 0
 
-        init(useWebGPU: Bool, renderTime: Binding<Double>, onLoadStatusChange: @escaping (Bool) -> Void) {
+        init(useWebGPU: Bool, renderTime: Binding<Double>, actualRenderMode: Binding<String>, onLoadStatusChange: @escaping (Bool) -> Void) {
             self.useWebGPU = useWebGPU
             self.renderTimeBinding = renderTime
+            self.actualRenderModeBinding = actualRenderMode
             self.onLoadStatusChange = onLoadStatusChange
             super.init()
 
@@ -496,11 +537,34 @@ struct WebGPULottieView: NSViewRepresentable {
             if useWebGPU {
                 player.tick()
 
+                // CRITICAL: Present WebGPU surface to display the rendered frame
+                player.presentWebGPU()
+
+                // Debug: Log every 60 frames and update UI
+                frameCount += 1
+                if frameCount % 60 == 0 {
+                    let mode = "\(player.renderMode)"
+                    print("✅ WebGPU Mode - Frame \(frameCount) - Render Mode: \(mode)")
+                    DispatchQueue.main.async { [weak self] in
+                        self?.actualRenderModeBinding.wrappedValue = mode
+                    }
+                }
+
                 commandBuffer.present(drawable)
                 commandBuffer.commit()
 
             } else {
                 if let cgImage = player.tick() {
+                    // Debug: Log every 60 frames and update UI
+                    frameCount += 1
+                    if frameCount % 60 == 0 {
+                        let mode = "\(player.renderMode)"
+                        print("🔧 Software Mode - Frame \(frameCount) - Render Mode: \(mode) - CGImage: \(cgImage.width)x\(cgImage.height)")
+                        DispatchQueue.main.async { [weak self] in
+                            self?.actualRenderModeBinding.wrappedValue = mode
+                        }
+                    }
+
                     let inputImage = CIImage(cgImage: cgImage)
 
                     var bounds = view.bounds
