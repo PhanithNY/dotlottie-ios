@@ -581,7 +581,7 @@ public class DotLottiePlayer {
     ) -> Bool {
         guard let ptr = playerPtr else { return false }
         return dotlottie_set_sw_target(
-            ptr, buffer, stride, width, height, colorSpace.cColorSpace
+            ptr, buffer, width, height, colorSpace.cColorSpace
         ) == dotlottieDOTLOTTIE_SUCCESS
     }
 
@@ -595,7 +595,7 @@ public class DotLottiePlayer {
     ) -> Bool {
         guard let ptr = playerPtr else { return false }
         return dotlottie_set_gl_target(
-            ptr, context, id, width, height, colorSpace.cColorSpace
+            ptr, context, id, width, height
         ) == dotlottieDOTLOTTIE_SUCCESS
     }
 
@@ -611,8 +611,7 @@ public class DotLottiePlayer {
     ) -> Bool {
         guard let ptr = playerPtr else { return false }
         return dotlottie_set_wg_target(
-            ptr, device, instance, target, width, height,
-            colorSpace.cColorSpace, type
+            ptr, device, instance, target, width, height
         ) == dotlottieDOTLOTTIE_SUCCESS
     }
 

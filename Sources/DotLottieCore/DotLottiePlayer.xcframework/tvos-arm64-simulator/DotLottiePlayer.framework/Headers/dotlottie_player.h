@@ -384,7 +384,6 @@ int32_t dotlottie_is_complete(struct dotlottieDotLottiePlayer *ptr);
 
 int32_t dotlottie_set_sw_target(struct dotlottieDotLottiePlayer *ptr,
                                 uint32_t *buffer,
-                                uint32_t stride,
                                 uint32_t width,
                                 uint32_t height,
                                 enum dotlottieColorSpace color_space);
@@ -393,73 +392,14 @@ int32_t dotlottie_set_gl_target(struct dotlottieDotLottiePlayer *ptr,
                                 void *context,
                                 int32_t id,
                                 uint32_t width,
-                                uint32_t height,
-                                enum dotlottieColorSpace color_space);
+                                uint32_t height);
 
 int32_t dotlottie_set_wg_target(struct dotlottieDotLottiePlayer *ptr,
                                 void *device,
                                 void *instance,
                                 void *target,
                                 uint32_t width,
-                                uint32_t height,
-                                enum dotlottieColorSpace color_space,
-                                int32_t _type);
-
-/**
- * Create WebGPU context from Metal layer (macOS/iOS only)
- *
- * # Arguments
- * * `metal_layer` - Pointer to CAMetalLayer from Swift
- *
- * # Returns
- * * Opaque pointer to WgpuContext, or NULL on failure
- *
- * # Safety
- * The metal_layer pointer must be valid and point to a CAMetalLayer object
- */
-void *dotlottie_create_wgpu_context_from_metal_layer(void *metal_layer);
-
-/**
- * Get WebGPU pointers from context (device, instance, surface)
- *
- * # Arguments
- * * `context` - Opaque pointer from dotlottie_create_wgpu_context_from_metal_layer
- * * `out_device` - Output pointer for device
- * * `out_instance` - Output pointer for instance
- * * `out_surface` - Output pointer for surface
- *
- * # Safety
- * context must be a valid pointer from dotlottie_create_wgpu_context_from_metal_layer
- */
-void dotlottie_wgpu_context_get_pointers(const void *context,
-                                         uint64_t *out_device,
-                                         uint64_t *out_instance,
-                                         uint64_t *out_surface);
-
-/**
- * Free WebGPU context
- *
- * # Arguments
- * * `context` - Opaque pointer from dotlottie_create_wgpu_context_from_metal_layer
- *
- * # Safety
- * context must be a valid pointer and will be invalid after this call
- */
-void dotlottie_free_wgpu_context(void *context);
-
-/**
- * Present WebGPU surface to display rendered frame
- *
- * CRITICAL: Must be called after rendering to show the frame on screen.
- * Without this call, rendering happens off-screen but never displays.
- *
- * # Arguments
- * * `context` - Opaque pointer from dotlottie_create_wgpu_context_from_metal_layer
- *
- * # Safety
- * context must be a valid pointer from dotlottie_create_wgpu_context_from_metal_layer
- */
-void dotlottie_wgpu_context_present(const void *context);
+                                uint32_t height);
 
 int32_t dotlottie_set_theme(struct dotlottieDotLottiePlayer *ptr, const char *theme_id);
 
@@ -773,6 +713,62 @@ int32_t dotlottie_state_machine_poll_internal_event(struct dotlottieStateMachine
 int32_t dotlottie_get_state_machine(struct dotlottieDotLottiePlayer *runtime,
                                     const char *state_machine_id,
                                     char *result);
+
+/**
+ * Create WebGPU context from Metal layer (macOS/iOS only)
+ *
+ * # Arguments
+ * * `metal_layer` - Pointer to CAMetalLayer from Swift
+ *
+ * # Returns
+ * * Opaque pointer to WgpuContext, or NULL on failure
+ *
+ * # Safety
+ * The metal_layer pointer must be valid and point to a CAMetalLayer object
+ */
+void *dotlottie_create_wgpu_context_from_metal_layer(void *metal_layer);
+
+/**
+ * Get WebGPU pointers from context (device, instance, surface)
+ *
+ * # Arguments
+ * * `context` - Opaque pointer from dotlottie_create_wgpu_context_from_metal_layer
+ * * `out_device` - Output pointer for device
+ * * `out_instance` - Output pointer for instance
+ * * `out_surface` - Output pointer for surface
+ *
+ * # Safety
+ * context must be a valid pointer from dotlottie_create_wgpu_context_from_metal_layer
+ */
+void dotlottie_wgpu_context_get_pointers(const void *context,
+                                         uint64_t *out_device,
+                                         uint64_t *out_instance,
+                                         uint64_t *out_surface);
+
+/**
+ * Free WebGPU context
+ *
+ * # Arguments
+ * * `context` - Opaque pointer from dotlottie_create_wgpu_context_from_metal_layer
+ *
+ * # Safety
+ * context must be a valid pointer and will be invalid after this call
+ */
+void dotlottie_free_wgpu_context(void *context);
+
+/**
+ * Present WebGPU surface to display rendered frame
+ *
+ * CRITICAL: Must be called after rendering to show the frame on screen.
+ * Without this call, rendering happens off-screen but never displays.
+ *
+ * # Arguments
+ * * `context` - Opaque pointer from dotlottie_create_wgpu_context_from_metal_layer
+ *
+ * # Safety
+ * context must be a valid pointer from dotlottie_create_wgpu_context_from_metal_layer
+ */
+void dotlottie_wgpu_context_present(const void *context);
 
 /**
  * Create a WebGL context for a canvas selector
