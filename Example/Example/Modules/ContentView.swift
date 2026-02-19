@@ -42,18 +42,6 @@ struct ContentView: View {
 #endif
                 }
                 
-                Section(header: Text("Performance & WebGPU")) {
-                    NavigationLink("WebGPU Direct Rendering (SwiftUI)") {
-                        Example8_WebGPURendering()
-                    }
-                    
-#if canImport(UIKit)
-                    NavigationLink("WebGPU Direct Rendering (UIKit)") {
-                        UIKitWebGPUViewWrapper()
-                    }
-#endif
-                }
-                
                 Section(header: Text("About")) {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("DotLottie iOS Test App")
@@ -149,15 +137,15 @@ struct UIKitStateMachineViewWrapper: UIViewControllerRepresentable {
     }
 }
 
-struct UIKitWebGPUViewWrapper: UIViewControllerRepresentable {
-    func makeUIViewController(context: Context) -> UIKitWebGPUViewController {
-        return UIKitWebGPUViewController()
-    }
-    
-    func updateUIViewController(_ uiViewController: UIKitWebGPUViewController, context: Context) {
-        // No updates needed
-    }
-}
+//struct UIKitWebGPUViewWrapper: UIViewControllerRepresentable {
+//    func makeUIViewController(context: Context) -> UIKitWebGPUViewController {
+//        return UIKitWebGPUViewController()
+//    }
+//    
+//    func updateUIViewController(_ uiViewController: UIKitWebGPUViewController, context: Context) {
+//        // No updates needed
+//    }
+//}
 #endif
 
 struct ContentView_Previews: PreviewProvider {

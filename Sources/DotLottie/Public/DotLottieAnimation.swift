@@ -568,23 +568,23 @@ public final class DotLottieAnimation: ObservableObject {
         return stop
     }
     
-    public func stateMachineStart(openUrlPolicy: OpenUrlPolicy = OpenUrlPolicy(requireUserInteraction: true, whitelist: [])) -> Bool {
-        let sm = player.stateMachineStart(openUrlPolicy: openUrlPolicy)
-        
+    public func stateMachineStart(whitelist: [String] = [], requireUserInteraction: Bool = true) -> Bool {
+        let sm = player.stateMachineStart(whitelist: whitelist, requireUserInteraction: requireUserInteraction)
+
         let _ = player.stateMachineInternalSubscribe(observer: self.internalStateMachineObserver)
-        
+
         self.stateMachineListeners = stateMachineFrameworkSetup().map { $0.lowercased() }
-        
+
         return sm
     }
 
     /// Convenience helper to load and start a specific state machine by id.
     /// It stops any running state machine, loads the requested one, and starts it.
     @discardableResult
-    public func stateMachineStart(id: String, openUrlPolicy: OpenUrlPolicy = OpenUrlPolicy(requireUserInteraction: true, whitelist: [])) -> Bool {
+    public func stateMachineStart(id: String, whitelist: [String] = [], requireUserInteraction: Bool = true) -> Bool {
         _ = stateMachineStop()
         guard stateMachineLoad(id: id) else { return false }
-        return stateMachineStart(openUrlPolicy: openUrlPolicy)
+        return stateMachineStart(whitelist: whitelist, requireUserInteraction: requireUserInteraction)
     }
     
     public func stateMachinePostEvent(_ event: Event, force: Bool? = false) {
@@ -640,7 +640,18 @@ public final class DotLottieAnimation: ObservableObject {
     }
     
     public func stateMachineFrameworkSetup() -> [String] {
-        player.stateMachineFrameworkSetup()
+        let flags = player.stateMachineFrameworkSetup()
+        print("Flags: \(flags)")
+        var events: [String] = []
+        if flags & (1 << 0) != 0 { events.append("pointerup") }
+        if flags & (1 << 1) != 0 { events.append("pointerdown") }
+        if flags & (1 << 2) != 0 { events.append("pointerenter") }
+        if flags & (1 << 3) != 0 { events.append("pointerexit") }
+        if flags & (1 << 4) != 0 { events.append("pointermove") }
+        if flags & (1 << 5) != 0 { events.append("click") }
+        if flags & (1 << 6) != 0 { events.append("oncomplete") }
+        if flags & (1 << 7) != 0 { events.append("onloopcomplete") }
+        return events
     }
     
     public func stateMachineSetNumericInput(key: String, value: Float) -> Bool {
@@ -668,17 +679,7 @@ public final class DotLottieAnimation: ObservableObject {
     }
     
     public func stateMachineGetInputs() -> [String: String] {
-        let stateArray = player.stateMachineGetInputs()
-        var stateDict: [String: String] = [:]
-        
-        // Iterate through array in pairs (key, value)
-        for i in stride(from: 0, to: stateArray.count, by: 2) {
-            let key = stateArray[i]
-            let type = stateArray[i + 1]
-            stateDict[key] = type
-        }
-        
-        return stateDict
+        return [:]
     }
     
     public func stateMachineCurrentState() -> String {

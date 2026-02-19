@@ -129,10 +129,8 @@ public class Player: ObservableObject {
             throw PlayerErrors.bufferAllocationError
         }
 
-        let stride = WIDTH  // stride in pixels
         if !dotLottiePlayer.setSoftwareTarget(
             buffer: buffer,
-            stride: stride,
             width: WIDTH,
             height: HEIGHT,
             colorSpace: .abgr8888
@@ -149,90 +147,6 @@ public class Player: ObservableObject {
             renderBuffer = nil
             bufferSize = 0
         }
-    }
-
-    /// Enable WebGPU rendering with a Metal layer
-    /// - Parameter metalLayer: Pointer to CAMetalLayer
-    /// - Returns: true if WebGPU was successfully initialized
-    /// - Note: Call this before loading animations to use GPU rendering
-    public func enableWebGPURendering(metalLayer: UnsafeMutableRawPointer) throws -> Bool {
-        print("[Swift] Creating WebGPU context from Metal layer...")
-
-        // Try to create WebGPU context with retries (async operation)
-        var context: UnsafeMutableRawPointer?
-        var attempts = 0
-        let maxAttempts = 5
-
-        while context == nil && attempts < maxAttempts {
-            context = DotLottiePlayer.createWebGPUContext(metalLayer: metalLayer)
-            if context == nil {
-                attempts += 1
-                print("[Swift] Attempt \(attempts) failed, retrying...")
-                Thread.sleep(forTimeInterval: 0.1) // Wait 100ms
-            }
-        }
-
-        guard let wgpuContext = context else {
-            print("[Swift] Failed to create WebGPU context after \(maxAttempts) attempts")
-            throw PlayerErrors.rendererConfigurationError
-        }
-
-        print("[Swift] WebGPU context created, getting pointers...")
-
-        // Get WebGPU pointers
-        guard let pointers = DotLottiePlayer.getWebGPUPointers(context: wgpuContext) else {
-            print("[Swift] Failed to get WebGPU pointers")
-            DotLottiePlayer.freeWebGPUContext(context: wgpuContext)
-            throw PlayerErrors.rendererConfigurationError
-        }
-
-        print("[Swift] Got pointers - device: 0x\(String(pointers.device, radix: 16)), instance: 0x\(String(pointers.instance, radix: 16)), surface: 0x\(String(pointers.surface, radix: 16))")
-
-        // Set WebGPU target with the created pointers
-        let device = UnsafeMutableRawPointer(bitPattern: UInt(pointers.device))
-        let instance = UnsafeMutableRawPointer(bitPattern: UInt(pointers.instance))
-        let surface = UnsafeMutableRawPointer(bitPattern: UInt(pointers.surface))!
-
-        if !dotLottiePlayer.setWebGPUTarget(
-            device: device,
-            instance: instance,
-            target: surface,
-            width: WIDTH,
-            height: HEIGHT,
-            colorSpace: .abgr8888s,
-            type: 0  // 0 = surface, 1 = texture
-        ) {
-            print("[Swift] setWebGPUTarget failed")
-            DotLottiePlayer.freeWebGPUContext(context: wgpuContext)
-            throw PlayerErrors.rendererConfigurationError
-        }
-
-        print("[Swift] WebGPU target set successfully")
-
-        // Store context and update mode
-        self.wgpuContext = wgpuContext
-        renderMode = .webgpu
-
-        return true
-    }
-
-    /// Disable WebGPU rendering and fall back to software rendering
-    public func disableWebGPURendering() {
-        if let context = wgpuContext {
-            DotLottiePlayer.freeWebGPUContext(context: context)
-            wgpuContext = nil
-        }
-        renderMode = .software
-    }
-
-    /// Present WebGPU surface to display the rendered frame
-    /// CRITICAL: Must be called after tick() when using WebGPU rendering
-    /// Without this, rendering happens but nothing appears on screen
-    public func presentWebGPU() {
-        guard let context = wgpuContext else {
-            return
-        }
-        DotLottiePlayer.presentWebGPUSurface(context: context)
     }
 
     public func tick() -> CGImage? {
@@ -302,7 +216,18 @@ public class Player: ObservableObject {
     }
     
     public func config() -> Config {
-        dotLottiePlayer.config()
+        return Config(
+            autoplay: dotLottiePlayer.getAutoplay(),
+            loopAnimation: dotLottiePlayer.getLoop(),
+            loopCount: dotLottiePlayer.getLoopCount(),
+            mode: dotLottiePlayer.getMode(),
+            speed: dotLottiePlayer.getSpeed(),
+            useFrameInterpolation: dotLottiePlayer.getUseFrameInterpolation(),
+            segment: dotLottiePlayer.getSegment() ?? [],
+            backgroundColor: dotLottiePlayer.getBackgroundColor(),
+            layout: dotLottiePlayer.getLayout(),
+            marker: dotLottiePlayer.getActiveMarker() ?? ""
+        )
     }
     
     public func totalFrames() -> Float {
@@ -319,7 +244,7 @@ public class Player: ObservableObject {
     }
     
     public func loopCount() -> Int {
-        Int(dotLottiePlayer.loopCount())
+        Int(dotLottiePlayer.currentLoopCount())
     }
     
     public func isLoaded() -> Bool {
@@ -383,10 +308,8 @@ public class Player: ObservableObject {
         dotLottiePlayer.stateMachineLoadData(stateMachine: data)
     }
     
-    public func stateMachineStart(openUrlPolicy: OpenUrlPolicy) -> Bool {
-        let started = dotLottiePlayer.stateMachineStart(openUrlPolicy: openUrlPolicy)
-        
-        return started
+    public func stateMachineStart(whitelist: [String] = [], requireUserInteraction: Bool = true) -> Bool {
+        return dotLottiePlayer.stateMachineStart(whitelist: whitelist, requireUserInteraction: requireUserInteraction)
     }
     
     public func stateMachineStop() -> Bool {
@@ -417,7 +340,7 @@ public class Player: ObservableObject {
         dotLottiePlayer.stateMachineInternalUnsubscribe(observer: observer)
     }
     
-    public func stateMachineFrameworkSetup() -> [String] {
+    public func stateMachineFrameworkSetup() -> UInt16 {
         dotLottiePlayer.stateMachineFrameworkSetup()
     }
     
@@ -485,16 +408,11 @@ public class Player: ObservableObject {
         dotLottiePlayer.stateMachineGetBooleanInput(key: key)
     }
     
-    public func stateMachineGetInputs() -> [String] {
-        return dotLottiePlayer.stateMachineGetInputs()
-    }
-    
     public func getStateMachine(_ id: String) -> String {
         dotLottiePlayer.getStateMachine(stateMachineId: id)
     }
 
     deinit {
         deallocateRenderBuffer()
-        disableWebGPURendering()
     }
 }
