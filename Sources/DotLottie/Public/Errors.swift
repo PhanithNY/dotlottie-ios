@@ -13,7 +13,7 @@ enum AnimationLoadErrors: Error {
     case convertToStringError
 }
 
-public enum PlayerErrors: Error {
+enum PlayerErrors: Error {
     case setFrameError
     case resizeError
     case stopError

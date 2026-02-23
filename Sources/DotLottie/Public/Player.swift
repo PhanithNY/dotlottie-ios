@@ -9,7 +9,7 @@ import Foundation
 import CoreImage
 import DotLottiePlayer
 
-public class Player: ObservableObject {
+class Player: ObservableObject {
     private let dotLottiePlayer: DotLottiePlayer
 
     public var WIDTH: UInt32 = 512
@@ -26,16 +26,13 @@ public class Player: ObservableObject {
     private var renderBuffer: UnsafeMutablePointer<UInt32>?
     private var bufferSize: Int = 0
 
-    // WebGPU rendering context
-    private var wgpuContext: UnsafeMutableRawPointer?
-
     private var currFrame: Float = -1.0;
     
     private var hasRenderedFirstFrame = false
     
     private var hasResized = false
     
-    public init(config: Config, threads : Int? = nil) {
+    init(config: Config, threads : Int? = nil) {
         if let threads = threads {
             self.dotLottiePlayer = DotLottiePlayer.withThreads(config: config, threads: UInt32(threads))
         } else {
@@ -155,16 +152,6 @@ public class Player: ObservableObject {
         }
 
         let tick = dotLottiePlayer.tick()
-
-        // WebGPU mode: renders directly to Metal surface, no CGImage available
-        if renderMode == .webgpu {
-            if tick || !hasRenderedFirstFrame || currFrame != dotLottiePlayer.currentFrame() || hasResized {
-                self.currFrame = dotLottiePlayer.currentFrame()
-                hasRenderedFirstFrame = true
-                hasResized = false
-            }
-            return nil
-        }
 
         // Software mode: create CGImage from buffer
         if tick || !hasRenderedFirstFrame || currFrame != dotLottiePlayer.currentFrame() || hasResized {
