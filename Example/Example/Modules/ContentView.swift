@@ -137,15 +137,6 @@ struct UIKitStateMachineViewWrapper: UIViewControllerRepresentable {
     }
 }
 
-//struct UIKitWebGPUViewWrapper: UIViewControllerRepresentable {
-//    func makeUIViewController(context: Context) -> UIKitWebGPUViewController {
-//        return UIKitWebGPUViewController()
-//    }
-//    
-//    func updateUIViewController(_ uiViewController: UIKitWebGPUViewController, context: Context) {
-//        // No updates needed
-//    }
-//}
 #endif
 
 struct ContentView_Previews: PreviewProvider {
