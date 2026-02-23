@@ -58,9 +58,7 @@ public final class DotLottieAnimation: ObservableObject {
         threads: Int? = nil
     ) {
         self.init(config: config, threads: threads) {
-            try $0.player.loadAnimationData(animationData: animationData,
-                                            width: $0.animationModel.width,
-                                            height: $0.animationModel.height)
+            try $0.loadAnimation(animationData: animationData)
         } errorMessage: { _ in
             "player failed to load."
         }
@@ -646,7 +644,6 @@ public final class DotLottieAnimation: ObservableObject {
     
     public func stateMachineFrameworkSetup() -> [String] {
         let flags = player.stateMachineFrameworkSetup()
-        print("Flags: \(flags)")
         var events: [String] = []
         if flags & (1 << 0) != 0 { events.append("pointerup") }
         if flags & (1 << 1) != 0 { events.append("pointerdown") }

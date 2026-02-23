@@ -414,7 +414,12 @@ public class DotLottiePlayer {
 
     public func loadAnimationData(animationData: String, width: UInt32, height: UInt32) -> Bool {
         guard let ptr = playerPtr else { return false }
-        return animationData.withCString { dotlottie_load_animation_data(ptr, $0, width, height) == Success }
+        // Copy to a mutable heap buffer first.
+        var mutableBytes = [CChar](animationData.utf8CString)
+        return mutableBytes.withUnsafeMutableBufferPointer { buffer in
+            guard let base = buffer.baseAddress else { return false }
+            return dotlottie_load_animation_data(ptr, base, width, height) == Success
+        }
     }
 
     public func loadAnimationPath(animationPath: String, width: UInt32, height: UInt32) -> Bool {
@@ -954,7 +959,10 @@ public class DotLottiePlayer {
             dotlottie_state_machine_release(smPtr)
             stateMachinePtr = nil
         }
-        stateMachinePtr = stateMachine.withCString { dotlottie_state_machine_load_data(ptr, $0) }
+        var mutableBytes = [CChar](stateMachine.utf8CString)
+        stateMachinePtr = mutableBytes.withUnsafeMutableBufferPointer { buffer in
+            buffer.baseAddress.flatMap { dotlottie_state_machine_load_data(ptr, $0) }
+        }
         return stateMachinePtr != nil
     }
 
