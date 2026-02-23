@@ -61,12 +61,12 @@ public class DotLottieAnimationView: PlatformViewBase, DotLottie {
         // Set up Metal-related configurations for your MTKView
         mtkView.device = MTLCreateSystemDefaultDevice()
         
-        #if canImport(UIKit)
+#if canImport(UIKit)
         mtkView.isOpaque = false
-        #else
+#else
         mtkView.layer?.isOpaque = false
         mtkView.layer?.backgroundColor = NSColor.clear.cgColor
-        #endif
+#endif
         
         mtkView.framebufferOnly = false
         
@@ -82,8 +82,8 @@ public class DotLottieAnimationView: PlatformViewBase, DotLottie {
         
         addSubview(mtkView)
     }
-
-    #if canImport(UIKit)
+    
+#if canImport(UIKit)
     public override func layoutSubviews() {
         super.layoutSubviews()
         
@@ -93,7 +93,7 @@ public class DotLottieAnimationView: PlatformViewBase, DotLottie {
             mtkView.setNeedsDisplay()
         }
     }
-    #else
+#else
     public override func layout() {
         super.layout()
         
@@ -103,7 +103,7 @@ public class DotLottieAnimationView: PlatformViewBase, DotLottie {
             mtkView.setNeedsDisplay(bounds)
         }
     }
-    #endif
+#endif
     
     public func subscribe(observer: Observer) {
         self.dotLottieViewModel.subscribe(observer: observer)

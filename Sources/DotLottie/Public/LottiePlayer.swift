@@ -900,7 +900,7 @@ open class DotLottiePlayerUIView: PlatformView {
     
     /// Gets all state machine inputs and their types
     public func stateMachineGetInputs() -> [String: String] {
-        return [:]
+        dotLottieAnimation?.stateMachineGetInputs() ?? [:]
     }
     
     /// Gets the current state machine state

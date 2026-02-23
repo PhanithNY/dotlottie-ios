@@ -46,7 +46,9 @@ public final class DotLottieAnimation: ObservableObject {
     internal var stateMachineListeners: [String] = []
     
     private var internalStateMachineObserver = DotLottieAnimationInternalStateMachineObserver()
-    
+
+    private var cachedStateMachineInputs: [String: String] = [:]
+
     private var currFrame = 0;
 
     /// Load directly from a String (.json).
@@ -551,12 +553,15 @@ public final class DotLottieAnimation: ObservableObject {
     
     @discardableResult
     public func stateMachineLoad(id: String) -> Bool {
-        player.stateMachineLoad(id: id)
+        config.stateMachineId = id
+        let ret = player.stateMachineLoad(id: id)
+        if ret { cachedStateMachineInputs = parseStateMachineInputs(from: getStateMachine(id)) }
+        return ret
     }
     
     public func stateMachineLoadData(_ data: String) -> Bool {
         let ret = player.stateMachineLoadData(data)
-        
+        if ret { cachedStateMachineInputs = parseStateMachineInputs(from: data) }
         return ret
     }
     
@@ -679,7 +684,21 @@ public final class DotLottieAnimation: ObservableObject {
     }
     
     public func stateMachineGetInputs() -> [String: String] {
-        return [:]
+        return cachedStateMachineInputs
+    }
+
+    private func parseStateMachineInputs(from json: String) -> [String: String] {
+        guard !json.isEmpty,
+              let data = json.data(using: .utf8),
+              let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let inputs = obj["inputs"] as? [[String: Any]] else { return [:] }
+        var result: [String: String] = [:]
+        for input in inputs {
+            if let name = input["name"] as? String, let type_ = input["type"] as? String {
+                result[name] = type_
+            }
+        }
+        return result
     }
     
     public func stateMachineCurrentState() -> String {
