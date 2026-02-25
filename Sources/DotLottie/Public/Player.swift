@@ -347,10 +347,56 @@ class Player: ObservableObject {
         dotLottiePlayer.clear()
     }
     
+    @discardableResult
     public func setSlots(_ slots: String) -> Bool {
         dotLottiePlayer.setSlotsStr(slots: slots);
     }
-    
+
+    @discardableResult
+    public func clearSlots() -> Bool {
+        dotLottiePlayer.clearSlots()
+    }
+
+    @discardableResult
+    public func clearSlot(slotId: String) -> Bool {
+        dotLottiePlayer.clearSlot(slotId: slotId)
+    }
+
+    @discardableResult
+    public func setColorSlot(slotId: String, r: Float, g: Float, b: Float) -> Bool {
+        dotLottiePlayer.setColorSlot(slotId: slotId, r: r, g: g, b: b)
+    }
+
+    @discardableResult
+    public func setScalarSlot(slotId: String, value: Float) -> Bool {
+        dotLottiePlayer.setScalarSlot(slotId: slotId, value: value)
+    }
+
+    @discardableResult
+    public func setTextSlot(slotId: String, text: String) -> Bool {
+        dotLottiePlayer.setTextSlot(slotId: slotId, text: text)
+    }
+
+    @discardableResult
+    public func setVectorSlot(slotId: String, x: Float, y: Float) -> Bool {
+        dotLottiePlayer.setVectorSlot(slotId: slotId, x: x, y: y)
+    }
+
+    @discardableResult
+    public func setPositionSlot(slotId: String, x: Float, y: Float) -> Bool {
+        dotLottiePlayer.setPositionSlot(slotId: slotId, x: x, y: y)
+    }
+
+    @discardableResult
+    public func setImageSlotPath(slotId: String, path: String) -> Bool {
+        dotLottiePlayer.setImageSlotPath(slotId: slotId, path: path)
+    }
+
+    @discardableResult
+    public func setImageSlotDataUrl(slotId: String, dataUrl: String) -> Bool {
+        dotLottiePlayer.setImageSlotDataUrl(slotId: slotId, dataUrl: dataUrl)
+    }
+
     public func setTheme(_ themeId: String) -> Bool {
         dotLottiePlayer.setTheme(themeId: themeId)
     }
