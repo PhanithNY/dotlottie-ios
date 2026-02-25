@@ -19,6 +19,8 @@ enum PlayerErrors: Error {
     case stopError
     case pauseError
     case playError
+    case bufferAllocationError
+    case rendererConfigurationError
 }
 
 enum FileErrors : Error {

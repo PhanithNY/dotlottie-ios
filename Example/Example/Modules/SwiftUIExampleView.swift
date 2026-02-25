@@ -32,7 +32,7 @@ struct SwiftUIExampleView: View {
                 Example5_CustomConfiguration()
                 
                 Example6_MultipleAnimations()
-                
+
                 if showInfo {
                     AnimationInfoView(
                         animation: DotLottieAnimation(

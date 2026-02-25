@@ -46,7 +46,9 @@ public final class DotLottieAnimation: ObservableObject {
     internal var stateMachineListeners: [String] = []
     
     private var internalStateMachineObserver = DotLottieAnimationInternalStateMachineObserver()
-    
+
+    private var cachedStateMachineInputs: [String: String] = [:]
+
     private var currFrame = 0;
 
     /// Load directly from a String (.json).
@@ -56,9 +58,7 @@ public final class DotLottieAnimation: ObservableObject {
         threads: Int? = nil
     ) {
         self.init(config: config, threads: threads) {
-            try $0.player.loadAnimationData(animationData: animationData,
-                                            width: $0.animationModel.width,
-                                            height: $0.animationModel.height)
+            try $0.loadAnimation(animationData: animationData)
         } errorMessage: { _ in
             "player failed to load."
         }
@@ -551,12 +551,15 @@ public final class DotLottieAnimation: ObservableObject {
     
     @discardableResult
     public func stateMachineLoad(id: String) -> Bool {
-        player.stateMachineLoad(id: id)
+        config.stateMachineId = id
+        let ret = player.stateMachineLoad(id: id)
+        if ret { cachedStateMachineInputs = parseStateMachineInputs(from: getStateMachine(id)) }
+        return ret
     }
     
     public func stateMachineLoadData(_ data: String) -> Bool {
         let ret = player.stateMachineLoadData(data)
-        
+        if ret { cachedStateMachineInputs = parseStateMachineInputs(from: data) }
         return ret
     }
     
@@ -568,23 +571,23 @@ public final class DotLottieAnimation: ObservableObject {
         return stop
     }
     
-    public func stateMachineStart(openUrlPolicy: OpenUrlPolicy = OpenUrlPolicy(requireUserInteraction: true, whitelist: [])) -> Bool {
-        let sm = player.stateMachineStart(openUrlPolicy: openUrlPolicy)
-        
+    public func stateMachineStart(whitelist: [String] = [], requireUserInteraction: Bool = true) -> Bool {
+        let sm = player.stateMachineStart(whitelist: whitelist, requireUserInteraction: requireUserInteraction)
+
         let _ = player.stateMachineInternalSubscribe(observer: self.internalStateMachineObserver)
-        
+
         self.stateMachineListeners = stateMachineFrameworkSetup().map { $0.lowercased() }
-        
+
         return sm
     }
 
     /// Convenience helper to load and start a specific state machine by id.
     /// It stops any running state machine, loads the requested one, and starts it.
     @discardableResult
-    public func stateMachineStart(id: String, openUrlPolicy: OpenUrlPolicy = OpenUrlPolicy(requireUserInteraction: true, whitelist: [])) -> Bool {
+    public func stateMachineStart(id: String, whitelist: [String] = [], requireUserInteraction: Bool = true) -> Bool {
         _ = stateMachineStop()
         guard stateMachineLoad(id: id) else { return false }
-        return stateMachineStart(openUrlPolicy: openUrlPolicy)
+        return stateMachineStart(whitelist: whitelist, requireUserInteraction: requireUserInteraction)
     }
     
     public func stateMachinePostEvent(_ event: Event, force: Bool? = false) {
@@ -640,7 +643,17 @@ public final class DotLottieAnimation: ObservableObject {
     }
     
     public func stateMachineFrameworkSetup() -> [String] {
-        player.stateMachineFrameworkSetup()
+        let flags = player.stateMachineFrameworkSetup()
+        var events: [String] = []
+        if flags & (1 << 0) != 0 { events.append("pointerup") }
+        if flags & (1 << 1) != 0 { events.append("pointerdown") }
+        if flags & (1 << 2) != 0 { events.append("pointerenter") }
+        if flags & (1 << 3) != 0 { events.append("pointerexit") }
+        if flags & (1 << 4) != 0 { events.append("pointermove") }
+        if flags & (1 << 5) != 0 { events.append("click") }
+        if flags & (1 << 6) != 0 { events.append("oncomplete") }
+        if flags & (1 << 7) != 0 { events.append("onloopcomplete") }
+        return events
     }
     
     public func stateMachineSetNumericInput(key: String, value: Float) -> Bool {
@@ -668,17 +681,21 @@ public final class DotLottieAnimation: ObservableObject {
     }
     
     public func stateMachineGetInputs() -> [String: String] {
-        let stateArray = player.stateMachineGetInputs()
-        var stateDict: [String: String] = [:]
-        
-        // Iterate through array in pairs (key, value)
-        for i in stride(from: 0, to: stateArray.count, by: 2) {
-            let key = stateArray[i]
-            let type = stateArray[i + 1]
-            stateDict[key] = type
+        return cachedStateMachineInputs
+    }
+
+    private func parseStateMachineInputs(from json: String) -> [String: String] {
+        guard !json.isEmpty,
+              let data = json.data(using: .utf8),
+              let obj = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let inputs = obj["inputs"] as? [[String: Any]] else { return [:] }
+        var result: [String: String] = [:]
+        for input in inputs {
+            if let name = input["name"] as? String, let type_ = input["type"] as? String {
+                result[name] = type_
+            }
         }
-        
-        return stateDict
+        return result
     }
     
     public func stateMachineCurrentState() -> String {
