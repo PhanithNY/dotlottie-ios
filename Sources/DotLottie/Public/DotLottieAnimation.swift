@@ -601,10 +601,56 @@ public final class DotLottieAnimation: ObservableObject {
         }
     }
     
+    @discardableResult
     public func setSlots(_ slots: String) -> Bool {
         player.setSlots(slots)
     }
-    
+
+    @discardableResult
+    public func clearSlots() -> Bool {
+        player.clearSlots()
+    }
+
+    @discardableResult
+    public func clearSlot(slotId: String) -> Bool {
+        player.clearSlot(slotId: slotId)
+    }
+
+    @discardableResult
+    public func setColorSlot(slotId: String, r: Float, g: Float, b: Float) -> Bool {
+        player.setColorSlot(slotId: slotId, r: r, g: g, b: b)
+    }
+
+    @discardableResult
+    public func setScalarSlot(slotId: String, value: Float) -> Bool {
+        player.setScalarSlot(slotId: slotId, value: value)
+    }
+
+    @discardableResult
+    public func setTextSlot(slotId: String, text: String) -> Bool {
+        player.setTextSlot(slotId: slotId, text: text)
+    }
+
+    @discardableResult
+    public func setVectorSlot(slotId: String, x: Float, y: Float) -> Bool {
+        player.setVectorSlot(slotId: slotId, x: x, y: y)
+    }
+
+    @discardableResult
+    public func setPositionSlot(slotId: String, x: Float, y: Float) -> Bool {
+        player.setPositionSlot(slotId: slotId, x: x, y: y)
+    }
+
+    @discardableResult
+    public func setImageSlotPath(slotId: String, path: String) -> Bool {
+        player.setImageSlotPath(slotId: slotId, path: path)
+    }
+
+    @discardableResult
+    public func setImageSlotDataUrl(slotId: String, dataUrl: String) -> Bool {
+        player.setImageSlotDataUrl(slotId: slotId, dataUrl: dataUrl)
+    }
+
     @discardableResult
     public func setTheme(_ themeId: String) -> Bool {
         player.setTheme(themeId)
