@@ -369,15 +369,15 @@ public class DotLottiePlayer {
 
         if config.segment.count >= 2 {
             var seg: (Float, Float) = (config.segment[0], config.segment[1])
-            withUnsafePointer(to: &seg) { dotlottie_set_segment(ptr, $0) }
+            _ = withUnsafePointer(to: &seg) { dotlottie_set_segment(ptr, $0) }
         }
 
         if !config.marker.isEmpty {
-            config.marker.withCString { dotlottie_set_marker(ptr, $0) }
+            _ = config.marker.withCString { dotlottie_set_marker(ptr, $0) }
         }
 
         if !config.themeId.isEmpty {
-            config.themeId.withCString { dotlottie_set_theme(ptr, $0) }
+            _ = config.themeId.withCString { dotlottie_set_theme(ptr, $0) }
         }
     }
 
@@ -937,7 +937,7 @@ public class DotLottiePlayer {
     public func getLayerBounds(layerName: String) -> [Float] {
         guard let ptr = playerPtr else { return [] }
         var bounds = dotlottieLayerBoundingBox()
-        layerName.withCString { dotlottie_get_layer_bounds(ptr, $0, &bounds) }
+        _ = layerName.withCString { dotlottie_get_layer_bounds(ptr, $0, &bounds) }
         return [bounds.x1, bounds.y1, bounds.x2, bounds.y2, bounds.x3, bounds.y3, bounds.x4, bounds.y4]
     }
 
@@ -984,7 +984,7 @@ public class DotLottiePlayer {
     public func stateMachinePostEvent(event: Event) {
         guard let smPtr = stateMachinePtr else { return }
         var cEvent = event.toCEvent()
-        withUnsafePointer(to: &cEvent) { dotlottie_state_machine_post_event(smPtr, $0) }
+        _ = withUnsafePointer(to: &cEvent) { dotlottie_state_machine_post_event(smPtr, $0) }
     }
 
     @discardableResult
@@ -1052,7 +1052,7 @@ public class DotLottiePlayer {
     public func stateMachineGetNumericInput(key: String) -> Float {
         guard let smPtr = stateMachinePtr else { return 0 }
         var result: Float = 0
-        key.withCString { dotlottie_state_machine_get_numeric_input(smPtr, $0, &result) }
+        _ = key.withCString { dotlottie_state_machine_get_numeric_input(smPtr, $0, &result) }
         return result
     }
 
@@ -1066,7 +1066,7 @@ public class DotLottiePlayer {
     public func stateMachineGetBooleanInput(key: String) -> Bool {
         guard let smPtr = stateMachinePtr else { return false }
         var result: Bool = false
-        key.withCString { dotlottie_state_machine_get_boolean_input(smPtr, $0, &result) }
+        _ = key.withCString { dotlottie_state_machine_get_boolean_input(smPtr, $0, &result) }
         return result
     }
 
